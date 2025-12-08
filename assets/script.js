@@ -64,4 +64,13 @@ input.addEventListener("keydown", (e) => {
     sendMessage();
   }
 });
+// Quick prompt clicks
+document.querySelectorAll(".prompt-item").forEach((el) => {
+  el.addEventListener("click", () => {
+    const prompt = el.getAttribute("data-prompt");
+    if (!prompt) return;
+    input.value = prompt;
+    input.focus();
+  });
+});
 
