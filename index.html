@@ -1,1 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Kolby's AI v2.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <div class="inner">
+      <header class="header">
+        <div class="title-block">
+          <div class="pirate-badge">☠️</div>
+          <div class="title-text">
+            <h1>Kolby's&nbsp;AI&nbsp;v2.1</h1>
+            <span>Self-hosted | ECU pirate mode | No signups. Ever.</span>
+          </div>
+        </div>
+        <div class="mode-pill">
+          <span class="mode-pill-dot"></span>
+          <span>Smartass online</span>
+        </div>
+      </header>
 
+      <section class="chat-card">
+        <div id="chatLog" class="chat-log">
+          <div class="msg msg-ai system">
+            Welcome aboard, captain. Type a message and I’ll run it through Kolby’s home-grown brain-in-a-box.
+          </div>
+        </div>
+
+        <div class="input-row">
+          <textarea id="messageInput" rows="1" placeholder="Ask me something, or give me a task..."></textarea>
+          <button id="sendBtn" type="button">
+            <span>Send</span>
+          </button>
+        </div>
+      </section>
+
+      <div class="status">
+        <span id="statusText">Idle</span>
+        <span class="code">Frontend only for now – backend coming next.</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>
