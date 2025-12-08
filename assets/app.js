@@ -1,10 +1,7 @@
-// === BASIC FRONTEND WIRING FOR KOLBY'S AI ===
+// Kolby's AI frontend wiring
 
-// 1) Backend API base URL – change this once your server is up.
-const API_BASE_URL = ""; // e.g. "https://api.kolbysai.com"
+const API_BASE_URL = ""; // set later when backend exists
 
-// 2) Hard-coded models for now.
-// When your backend is ready, you'll fetch these from /api/models instead.
 const MODELS = [
   { id: "v1-pi", label: "V1 · Pi rig" },
   { id: "v2", label: "V2 · Desktop" },
@@ -18,7 +15,7 @@ let isSending = false;
 let isLoggedIn = false;
 let currentUser = null;
 
-// DOM refs
+// DOM
 const modelListEl = document.getElementById("model-list");
 const chatListEl = document.getElementById("chat-list");
 const messagesEl = document.getElementById("messages");
@@ -33,8 +30,7 @@ const loginModal = document.getElementById("login-modal");
 const loginForm = document.getElementById("login-form");
 const loginCancel = document.getElementById("login-cancel");
 
-// ---------- UI helpers ----------
-
+// helpers
 function addMessage(role, text) {
   const container = document.createElement("div");
   container.className = `message ${role}`;
@@ -94,7 +90,6 @@ function renderModels() {
 }
 
 function renderDummyHistory() {
-  // Placeholder – replaced later when wired to /api/conversations
   chatListEl.innerHTML = "";
   const li = document.createElement("li");
   li.className = "chat-item active";
@@ -102,38 +97,31 @@ function renderDummyHistory() {
   chatListEl.appendChild(li);
 }
 
-// ---------- Login modal ----------
-
+// login modal
 function openLoginModal() {
   loginModal.classList.remove("hidden");
 }
-
 function closeLoginModal() {
   loginModal.classList.add("hidden");
 }
 
-signInBtn?.addEventListener("click", openLoginModal);
-loginCancel?.addEventListener("click", closeLoginModal);
+signInBtn.addEventListener("click", openLoginModal);
+loginCancel.addEventListener("click", closeLoginModal);
 
-loginForm?.addEventListener("submit", (e) => {
+loginForm.addEventListener("submit", (e) => {
   e.preventDefault();
-
   const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
 
-  // TODO: Replace this with a real POST `${API_BASE_URL}/api/login`
-  // For now, pretend login works and mark you as admin.
+  // TODO: real POST `${API_BASE_URL}/api/login`
   currentUser = { email, isAdmin: true };
   isLoggedIn = true;
   signInBtn.textContent = email.split("@")[0];
   closeLoginModal();
 });
 
-// ---------- Chat sending ----------
-
+// backend call placeholder
 async function sendToBackend(messages) {
   if (!API_BASE_URL) {
-    // No backend yet – just echo with a placeholder.
     await new Promise((r) => setTimeout(r, 400));
     return {
       role: "assistant",
@@ -142,30 +130,11 @@ async function sendToBackend(messages) {
     };
   }
 
-  // TODO: replace with your real /api/chat implementation.
-  // Example shape:
-  /*
-  const res = await fetch(`${API_BASE_URL}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: isLoggedIn && currentUser?.token
-        ? `Bearer ${currentUser.token}`
-        : undefined,
-    },
-    body: JSON.stringify({
-      model: currentModel,
-      conversationId: currentConversationId,
-      messages,
-    }),
-  });
-
-  if (!res.ok) throw new Error("API error");
-  return await res.json();
-  */
+  // TODO: real /api/chat call goes here
 }
 
-chatFormEl?.addEventListener("submit", async (e) => {
+// chat submit
+chatFormEl.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (isSending) return;
 
@@ -173,10 +142,7 @@ chatFormEl?.addEventListener("submit", async (e) => {
   if (!text) return;
 
   if (!currentModel) {
-    addMessage(
-      "system",
-      "Pick a model in the sidebar first (V1, V2, V2.1, or V2.2)."
-    );
+    addMessage("system", "Pick a model in the sidebar first.");
     return;
   }
 
@@ -185,35 +151,30 @@ chatFormEl?.addEventListener("submit", async (e) => {
   addMessage("user", text);
 
   try {
-    const messagesPayload = [
-      { role: "user", content: text },
-      // When wired to backend, prepend conversation history here.
-    ];
-
-    const resp = await sendToBackend(messagesPayload);
+    const payload = [{ role: "user", content: text }];
+    const resp = await sendToBackend(payload);
 
     if (resp && resp.content) {
       addMessage("assistant", resp.content);
     } else {
       addMessage(
         "system",
-        "Backend returned no data. Check your /api/chat wiring when you hook it up."
+        "Backend returned no data. Check /api/chat wiring once you connect it."
       );
     }
   } catch (err) {
     console.error(err);
     addMessage(
       "system",
-      "Error talking to backend. Check API_BASE_URL and server logs."
+      "Error talking to backend. Check API_BASE_URL and your server."
     );
   } finally {
     isSending = false;
   }
 });
 
-// ---------- New chat ----------
-
-newChatBtn?.addEventListener("click", () => {
+// new chat
+newChatBtn.addEventListener("click", () => {
   currentConversationId = null;
   messagesEl.innerHTML = "";
   addMessage(
@@ -222,8 +183,7 @@ newChatBtn?.addEventListener("click", () => {
   );
 });
 
-// ---------- Initial boot ----------
-
+// init
 (function init() {
   renderModels();
   renderDummyHistory();
