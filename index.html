@@ -1,184 +1,114 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Kolby's AI · Pirate-Ready Assistant</title>
+  <meta charset="UTF-8" />
+  <title>Kolby’s AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="assets/style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="bg-texture"></div>
-  <div class="page">
-    <header class="hero">
-      <div class="hero-left">
-        <div class="hero-brand">
-          <div class="hero-logo">
-            <img src="assets/logo.png" alt="Kolby's AI pirate logo" />
-          </div>
-          <div class="hero-title-group">
-            <p class="eyebrow">Local-first pirate intelligence</p>
-            <h1>Kolby's AI</h1>
-            <p class="lede">A custom assistant designed to live on your hardware, keep your data private, and answer with swagger.</p>
-            <div class="badges">
-              <span class="pill pill-strong">RTX-ready</span>
-              <span class="pill pill-outline">No cloud logins</span>
-              <span class="pill pill-soft">Backend wiring next</span>
-            </div>
-          </div>
-        </div>
-        <div class="cta-row">
-          <button class="primary-btn" type="button">Start a new chat</button>
-          <button class="ghost-btn" type="button">View roadmap</button>
-        </div>
-        <div class="lede-note">Front-end is live at kolbysai.com. Backend will point to <strong>api.kolbysai.com</strong> once models drop in.</div>
-      </div>
-      <div class="hero-right">
-        <div class="callout-card">
-          <div class="callout-header">
-            <div>
-              <p class="eyebrow">V2.2 pirate mode</p>
-              <h3>Chat shell preview</h3>
-            </div>
-            <span class="tag">Local</span>
-          </div>
-          <div class="chat-preview">
-            <div class="preview-message preview-system">Welcome aboard. This UI is live and waiting for your backend brain.</div>
-            <div class="preview-message preview-user">Plan my day so I stay productive without burnout.</div>
-            <div class="preview-message preview-ai">Got it. I'll balance deep work blocks with short breaks, protect your energy, and keep priorities realistic.</div>
-          </div>
-          <div class="status-row">
-            <span class="status-dot"></span>
-            <span id="statusText">Frontend online · Backend wiring soon</span>
-          </div>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="assets/img/logo.png" alt="Kolby's AI logo" class="logo" />
+        <div class="brand">
+          <span class="brand-title">Kolby’s AI</span>
+          <span class="brand-subtitle">Local, private, yours.</span>
         </div>
       </div>
-    </header>
 
-    <main>
-      <section class="section grid-3">
-        <article class="card">
-          <div class="card-icon">⚙️</div>
-          <h3>Architecture & Hosting</h3>
-          <p>Static frontend on Pages with a dedicated API service at <strong>api.kolbysai.com</strong>. Docker keeps the backend and model sidecars reproducible.</p>
-          <ul class="list">
-            <li>FastAPI or Express/NestJS runtime</li>
-            <li>SQLite first; upgrade to Postgres/MySQL later</li>
-            <li>Reverse proxy with HTTPS for the API</li>
-          </ul>
-        </article>
-        <article class="card">
-          <div class="card-icon">🧭</div>
-          <h3>Frontend Work</h3>
-          <p>Rebuild as a SPA (React or SvelteKit) mirroring this layout: sidebar, chat panel, quick prompts, and a status chip for model health.</p>
-          <ul class="list">
-            <li>Streamed chat via <code>/api/chat</code></li>
-            <li>Model picker synced with <code>/api/models</code></li>
-            <li>Auth-aware history and admin-only links</li>
-          </ul>
-        </article>
-        <article class="card">
-          <div class="card-icon">🛡️</div>
-          <h3>Security & Persistence</h3>
-          <p>JWT auth, CORS for Pages, and per-user conversation access. Rate limits and input caps protect the GPU and keep responses safe.</p>
-          <ul class="list">
-            <li>Tables for users, conversations, messages</li>
-            <li>Escaped HTML in rendered chat</li>
-            <li>Optional browser agent for context</li>
-          </ul>
-        </article>
-      </section>
+      <button class="btn primary w-full" id="new-chat-btn">+ New chat</button>
 
-      <section class="section two-column">
-        <div class="column">
-          <div class="section-heading">
-            <p class="eyebrow">Roadmap checkpoints</p>
-            <h2>Backend milestones</h2>
-            <p class="lede">One adapter to drive any model—LocalAI/Ollama via OpenAI-compatible REST or in-process llama.cpp bindings.</p>
-          </div>
-          <div class="timeline">
-            <div class="timeline-item">
-              <div class="dot"></div>
-              <div>
-                <h4>Core endpoints</h4>
-                <p><code>POST /api/login</code> and <code>/api/register</code> for auth, <code>GET /api/models</code> to list capable models, and <code>POST /api/chat</code> for generation.</p>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <div class="dot"></div>
-              <div>
-                <h4>Conversation management</h4>
-                <p>User-scoped <code>/api/conversations</code> with load, rename, create, and delete controls to sync with the sidebar history.</p>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <div class="dot"></div>
-              <div>
-                <h4>Containerized deployment</h4>
-                <p>Docker/Compose bundles the backend plus optional model-serving sidecar, making local rigs and VPS installs painless.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="column">
-          <div class="section-heading">
-            <p class="eyebrow">Quality gates</p>
-            <h2>Testing & QA</h2>
-            <p class="lede">Exercise the full loop—request to model to database—to keep streaming smooth and auth locked down.</p>
-          </div>
-          <div class="qa-grid">
-            <div class="qa-card">
-              <h4>Unit & Integration</h4>
-              <p>Model adapter and auth flows are unit-tested. Full chat round-trips ensure persistence and authorization behave.</p>
-            </div>
-            <div class="qa-card">
-              <h4>Resilience</h4>
-              <p>Timeouts, missing models, and offline backend states render clear UI errors so users know when to retry.</p>
-            </div>
-            <div class="qa-card">
-              <h4>Long chats</h4>
-              <p>Context window trimming and summary strategies keep long threads responsive during streaming.</p>
-            </div>
-            <div class="qa-card">
-              <h4>Deploy checklist</h4>
-              <p>DB URL, JWT secret, allowed origins, and model paths are configured before shipping. Monitoring watches GPU/CPU load.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section final-cta">
-        <div class="final-copy">
-          <p class="eyebrow">Next actions</p>
-          <h2>Wire the backend and drop in your models.</h2>
-          <p class="lede">This pirate-branded shell is ready for streaming responses, JWT auth, and a model picker that knows your rig. Point it at <strong>api.kolbysai.com</strong> and ship.</p>
-        </div>
-        <div class="cta-row">
-          <button class="primary-btn" type="button">Connect backend</button>
-          <button class="ghost-btn" type="button">Download checklist</button>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-left">
-        <div class="footer-logo">
-          <img src="assets/logo.png" alt="Kolby's AI logo" />
-        </div>
-        <div>
-          <p class="eyebrow">Kolby's AI · V2.2</p>
-          <p class="muted">Local-first assistant. Pirate-approved.</p>
-        </div>
+      <div class="sidebar-section">
+        <div class="section-label">Models</div>
+        <ul class="model-list" id="model-list">
+          <!-- Populated by app.js -->
+        </ul>
       </div>
-      <div class="footer-right">
-        <span class="chip">GitHub Pages ready</span>
-        <span class="chip">Backend coming soon</span>
+
+      <div class="sidebar-section">
+        <div class="section-label">Chats</div>
+        <ul class="chat-list" id="chat-list">
+          <!-- Populated by app.js -->
+        </ul>
       </div>
-    </footer>
+
+      <div class="sidebar-footer">
+        <span class="status-dot" id="backend-status-dot"></span>
+        <span id="backend-status-text">Frontend only · API not connected</span>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <div class="main">
+      <!-- Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <h1>Kolby’s AI</h1>
+          <span class="header-subtitle" id="current-model-label">
+            Model: (none selected)
+          </span>
+        </div>
+        <div class="header-right">
+          <button class="btn ghost" id="sign-in-btn">Sign in</button>
+        </div>
+      </header>
+
+      <!-- Watermark background -->
+      <div class="watermark"></div>
+
+      <!-- Chat panel -->
+      <main class="chat-panel">
+        <div class="messages" id="messages">
+          <div class="message system">
+            <div class="message-meta">System</div>
+            <div class="message-body">
+              Welcome aboard. This is the web UI for Kolby’s AI.
+              The brain connects once your backend is wired.
+            </div>
+          </div>
+        </div>
+
+        <form class="input-row" id="chat-form">
+          <textarea
+            id="chat-input"
+            placeholder="Ask something, or pick a model and start a new chat..."
+          ></textarea>
+          <button type="submit" class="btn accent" id="send-btn">Send</button>
+        </form>
+      </main>
+    </div>
   </div>
 
-  <script src="assets/script.js"></script>
+  <!-- Login modal -->
+  <div class="modal-backdrop hidden" id="login-modal">
+    <div class="modal">
+      <h2>Sign in</h2>
+      <p class="modal-subtitle">
+        This is UI only right now. We’ll hook it to the real backend auth later.
+      </p>
+      <form id="login-form">
+        <label>
+          Email
+          <input type="email" id="login-email" required />
+        </label>
+        <label>
+          Password
+          <input type="password" id="login-password" required />
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="login-cancel">
+            Cancel
+          </button>
+          <button type="submit" class="btn primary">
+            Continue
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
 </body>
 </html>
