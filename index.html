@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <title>Kolby’s AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
- <link rel="stylesheet" href="assets/style.css?v=3" />
+  <!-- bump the version if you ever want to force-refresh CSS -->
+  <link rel="stylesheet" href="assets/style.css?v=4" />
 </head>
 <body>
   <div class="app-shell">
@@ -22,16 +23,12 @@
 
       <div class="sidebar-section">
         <div class="section-label">Models</div>
-        <ul class="model-list" id="model-list">
-          <!-- Populated by app.js -->
-        </ul>
+        <ul class="model-list" id="model-list"></ul>
       </div>
 
       <div class="sidebar-section">
         <div class="section-label">Chats</div>
-        <ul class="chat-list" id="chat-list">
-          <!-- Populated by app.js -->
-        </ul>
+        <ul class="chat-list" id="chat-list"></ul>
       </div>
 
       <div class="sidebar-footer">
@@ -40,25 +37,21 @@
       </div>
     </aside>
 
-    <!-- Main area -->
+    <!-- Main -->
     <div class="main">
-      <!-- Header -->
       <header class="main-header">
-        <div class="header-left">
+        <div>
           <h1>Kolby’s AI</h1>
           <span class="header-subtitle" id="current-model-label">
             Model: (none selected)
           </span>
         </div>
-        <div class="header-right">
-          <button class="btn ghost" id="sign-in-btn">Sign in</button>
-        </div>
+        <button class="btn ghost" id="sign-in-btn">Sign in</button>
       </header>
 
-      <!-- Watermark background -->
+      <!-- watermark sits behind the chat card -->
       <div class="watermark"></div>
 
-      <!-- Chat panel -->
       <main class="chat-panel">
         <div class="messages" id="messages">
           <div class="message system">
@@ -86,7 +79,7 @@
     <div class="modal">
       <h2>Sign in</h2>
       <p class="modal-subtitle">
-        This is UI only right now. We’ll hook it to the real backend auth later.
+        This is UI-only for now. We’ll hook it to real auth when your backend is live.
       </p>
       <form id="login-form">
         <label>
@@ -98,12 +91,8 @@
           <input type="password" id="login-password" required />
         </label>
         <div class="modal-actions">
-          <button type="button" class="btn ghost" id="login-cancel">
-            Cancel
-          </button>
-          <button type="submit" class="btn primary">
-            Continue
-          </button>
+          <button type="button" class="btn ghost" id="login-cancel">Cancel</button>
+          <button type="submit" class="btn primary">Continue</button>
         </div>
       </form>
     </div>
@@ -112,4 +101,3 @@
   <script src="assets/app.js"></script>
 </body>
 </html>
-
