@@ -2,47 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Kolby's AI v2.1</title>
+  <title>Kolby's AI V2.2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
-  <div class="shell">
-    <div class="inner">
-      <header class="header">
-        <div class="title-block">
-          <div class="pirate-badge">☠️</div>
-          <div class="title-text">
-            <h1>Kolby's&nbsp;AI&nbsp;v2.1</h1>
-            <span>Self-hosted | ECU pirate mode | No signups. Ever.</span>
-          </div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <span class="brand-emoji">☠️</span>
         </div>
-        <div class="mode-pill">
-          <span class="mode-pill-dot"></span>
-          <span>Smartass online</span>
+        <div class="brand-text">
+          <div class="brand-name">Kolby’s AI V2.2</div>
+          <div class="brand-tagline">Best AI so far</div>
         </div>
-      </header>
+      </div>
+
+      <div class="badge-row">
+        <span class="badge badge-primary">RTX 3080 · Local</span>
+        <span class="badge badge-muted">No logins · No cloud</span>
+      </div>
+
+      <div class="section-title">Quick prompts</div>
+      <ul class="prompt-list">
+        <li class="prompt-item" data-prompt="Explain how you were created and how you run on my hardware.">
+          ⚙️ Creation story
+        </li>
+        <li class="prompt-item" data-prompt="Give a quick, friendly overview of what you can help me with.">
+          💡 What can you do?
+        </li>
+        <li class="prompt-item" data-prompt="Help me plan my day so I don't burn out.">
+          📅 Plan my day
+        </li>
+        <li class="prompt-item" data-prompt="Summarize my options if I want to self-host AI on consumer hardware.">
+          🖥️ Self-host advice
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="footer-label">Status</div>
+        <div class="footer-status">
+          <span class="status-dot"></span>
+          <span id="statusText">Frontend online · Backend coming next</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="main-header">
+        <div class="header-title-block">
+          <h1>Kolby’s AI</h1>
+          <p>Fast, local, and unapologetically opinionated.</p>
+        </div>
+        <div class="header-meta">
+          <span class="pill pill-gold">V2.2</span>
+          <span class="pill pill-soft">Pirate mode enabled</span>
+        </div>
+      </div>
 
       <section class="chat-card">
+        <div class="chat-bg"></div>
+
         <div id="chatLog" class="chat-log">
-          <div class="msg msg-ai system">
-            Welcome aboard, captain. Type a message and I’ll run it through Kolby’s home-grown brain-in-a-box.
+          <div class="msg msg-ai msg-system">
+            Welcome aboard. This is the web version of Kolby’s AI. The UI is live; the brain will connect to your PC once we wire the backend.
           </div>
         </div>
 
         <div class="input-row">
-          <textarea id="messageInput" rows="1" placeholder="Ask me something, or give me a task..."></textarea>
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Ask something, or click a quick prompt on the left..."
+          ></textarea>
           <button id="sendBtn" type="button">
             <span>Send</span>
           </button>
         </div>
       </section>
 
-      <div class="status">
-        <span id="statusText">Idle</span>
-        <span class="code">Frontend only for now – backend coming next.</span>
+      <div class="main-footer">
+        <span class="footnote">
+          Deployed via GitHub Pages · Soon to be powered by your home rig.
+        </span>
       </div>
-    </div>
+    </main>
   </div>
 
   <script src="assets/script.js"></script>
