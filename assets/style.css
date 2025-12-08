@@ -1,18 +1,18 @@
 :root {
-  --bg-page: #f5f5fb;
-  --bg-sidebar: #fafafc;
+  --bg-page: #f4f4f8;
+  --bg-sidebar: #faf7f1;
   --bg-main: #ffffff;
   --bg-input: #f3f4f6;
   --border-subtle: rgba(15, 23, 42, 0.06);
-  --border-strong: rgba(15, 23, 42, 0.10);
-  --text-main: #0f172a;
+  --border-strong: rgba(15, 23, 42, 0.12);
+  --text-main: #111827;
   --text-muted: #6b7280;
   --text-soft: #9ca3af;
   --accent-gold: #fbbf24;
   --accent-gold-soft: #fef3c7;
   --accent-purple: #7c3aed;
   --accent-purple-soft: #f5f3ff;
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.16);
+  --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.16);
 }
 
 *,
@@ -36,16 +36,16 @@ body {
   color: var(--text-main);
 }
 
-/* Layout shell */
+/* App layout */
 
 .app {
   width: 100%;
-  max-width: 1180px;
-  background: rgba(255, 255, 255, 0.96);
+  max-width: 1200px;
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 22px;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-soft);
 }
@@ -53,7 +53,7 @@ body {
 /* Sidebar */
 
 .sidebar {
-  background: var(--bg-sidebar);
+  background: radial-gradient(circle at top left, #fef3c7 0, #faf7f1 42%, #f9fafb 100%);
   border-right: 1px solid var(--border-subtle);
   padding: 16px 16px 14px;
   display: flex;
@@ -67,13 +67,13 @@ body {
   gap: 10px;
 }
 
-.logo {
+.sidebar-logo {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.logo-icon {
+.logo-circle {
   width: 40px;
   height: 40px;
   border-radius: 999px;
@@ -81,9 +81,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f9fafb;
-  font-size: 22px;
-  box-shadow: 0 10px 25px rgba(55, 65, 81, 0.4);
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(55, 65, 81, 0.4);
+}
+
+.logo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .logo-text {
@@ -93,8 +98,8 @@ body {
 }
 
 .logo-title {
-  font-weight: 600;
   font-size: 15px;
+  font-weight: 600;
 }
 
 .logo-subtitle {
@@ -102,7 +107,7 @@ body {
   color: var(--text-soft);
 }
 
-.sidebar-meta {
+.sidebar-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -120,13 +125,35 @@ body {
 .chip-primary {
   background: var(--accent-purple-soft);
   color: #4c1d95;
-  border: 1px solid rgba(124, 58, 237, 0.28);
+  border: 1px solid rgba(124, 58, 237, 0.25);
 }
 
 .chip-muted {
   background: #ecfeff;
   color: #0e7490;
   border: 1px solid rgba(8, 145, 178, 0.25);
+}
+
+.new-chat-btn {
+  margin-top: 4px;
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: #f9fafb;
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.new-chat-btn:hover {
+  background: #eef2ff;
+  border-color: rgba(79, 70, 229, 0.5);
 }
 
 .sidebar-section {
@@ -144,8 +171,8 @@ body {
 .chat-list,
 .prompt-list {
   list-style: none;
-  margin: 0;
   padding: 0;
+  margin: 0;
 }
 
 .chat-item {
@@ -207,7 +234,7 @@ body {
   color: var(--text-muted);
 }
 
-.status-indicator {
+.status-dot {
   width: 7px;
   height: 7px;
   border-radius: 999px;
@@ -215,10 +242,12 @@ body {
   box-shadow: 0 0 6px rgba(34, 197, 94, 0.85);
 }
 
-/* Main area */
+/* Main panel */
 
 .main {
-  background: linear-gradient(180deg, #f9fafb, #f5f5fb);
+  background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 60%),
+              radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.14), transparent 60%),
+              #f9fafb;
   padding: 16px 18px 14px;
   display: flex;
   flex-direction: column;
@@ -232,19 +261,24 @@ body {
   gap: 12px;
 }
 
-.main-title-block h1 {
-  margin: 0;
-  font-size: 20px;
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.model-name {
+  font-size: 18px;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 
-.main-title-block p {
-  margin: 2px 0 0;
+.model-subtitle {
   font-size: 13px;
   color: var(--text-muted);
 }
 
-.main-badges {
+.header-right {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -272,41 +306,48 @@ body {
   border-color: rgba(124, 58, 237, 0.35);
 }
 
-/* Chat area */
+/* Chat shell */
 
-.chat-area {
+.chat-shell {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.chat-card {
+.chat-panel {
   position: relative;
   background: var(--bg-main);
   border-radius: 18px;
   border: 1px solid var(--border-strong);
   box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
-  min-height: 320px;
-  max-height: 520px;
-  padding: 14px;
+  min-height: 280px;
+  max-height: 460px;
+  padding: 12px;
   overflow: hidden;
 }
 
-/* Faint “skull” style watermark */
+/* Background skull / gradient */
 
 .chat-watermark {
   position: absolute;
-  inset: -20%;
+  inset: 0;
+  opacity: 0.12;
   pointer-events: none;
-  opacity: 0.11;
   background:
-    radial-gradient(circle at 30% 25%, rgba(251, 191, 36, 0.7), transparent 55%),
-    radial-gradient(circle at 70% 65%, rgba(59, 130, 246, 0.55), transparent 60%),
-    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.85), transparent 70%);
+    radial-gradient(circle at 20% 10%, rgba(251, 191, 36, 0.7), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.65), transparent 60%);
   mix-blend-mode: screen;
 }
 
-/* Chat log */
+/* If you uploaded logo-watermark.png, uncomment this:
+.chat-watermark {
+  background-image: url("logo-watermark.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.10;
+}
+*/
 
 .chat-log {
   position: relative;
@@ -349,9 +390,9 @@ body {
   border-style: dashed;
 }
 
-/* Input panel */
+/* Input row */
 
-.input-panel {
+.input-row {
   display: flex;
   align-items: flex-end;
   gap: 8px;
@@ -369,7 +410,7 @@ textarea {
   color: var(--text-main);
   font-size: 14px;
   line-height: 1.4;
-  max-height: 100px;
+  max-height: 110px;
   outline: none;
 }
 
@@ -412,7 +453,7 @@ button:disabled {
   box-shadow: none;
 }
 
-/* Deploy note */
+/* Footer note */
 
 .deploy-note {
   font-size: 11px;
