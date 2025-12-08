@@ -8,27 +8,36 @@
 </head>
 <body>
   <div class="app">
+
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="logo">
-          <div class="logo-icon">☠️</div>
+        <div class="sidebar-logo">
+          <div class="logo-circle">
+            <img src="assets/logo.png" alt="Kolby's AI logo" />
+          </div>
           <div class="logo-text">
             <div class="logo-title">Kolby’s AI V2.2</div>
             <div class="logo-subtitle">Best AI so far</div>
           </div>
         </div>
 
-        <div class="sidebar-meta">
+        <div class="sidebar-tags">
           <span class="chip chip-primary">RTX 3080 · Local</span>
           <span class="chip chip-muted">No logins · No cloud</span>
         </div>
+
+        <button class="new-chat-btn" type="button">
+          <span>＋ New chat</span>
+        </button>
       </div>
 
       <div class="sidebar-section">
         <div class="section-label">Today</div>
         <ul class="chat-list">
-          <li class="chat-item chat-item-active">Kolby’s AI V2.2</li>
+          <li class="chat-item chat-item-active">
+            Kolby’s AI V2.2
+          </li>
         </ul>
       </div>
 
@@ -38,10 +47,71 @@
           <li class="prompt-item" data-prompt="Explain how you were created and how you run on my hardware.">
             ⚙️ Creation story
           </li>
-          <li class="prompt-item" data-prompt="Give a quick, friendly overview of what you can help me with.">
+          <li class="prompt-item" data-prompt="Give a quick, practical overview of what you can help me with.">
             💡 What can you do?
           </li>
           <li class="prompt-item" data-prompt="Help me plan my day so I don't burn out.">
             📅 Plan my day
           </li>
-          <li class="prompt-item" data-pr
+          <li class="prompt-item" data-prompt="Summarize my options if I want to self-host AI on consumer hardware.">
+            🖥️ Self-host advice
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="footer-label">Status</div>
+        <div class="footer-status">
+          <span class="status-dot"></span>
+          <span id="statusText">Frontend online · Backend not wired yet</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <header class="main-header">
+        <div class="header-left">
+          <div class="model-name">Kolby’s AI</div>
+          <div class="model-subtitle">
+            Fast, local, and unapologetically opinionated.
+          </div>
+        </div>
+        <div class="header-right">
+          <span class="pill pill-gold">V2.2</span>
+          <span class="pill pill-soft">Pirate mode enabled</span>
+        </div>
+      </header>
+
+      <section class="chat-shell">
+        <div class="chat-panel">
+          <div class="chat-watermark"></div>
+
+          <div id="chatLog" class="chat-log">
+            <div class="msg msg-ai msg-system">
+              Welcome aboard. This is the web version of Kolby’s AI. The UI is live and hosted at kolbysai.com.
+              Messages will go through your own backend once we point this to api.kolbysai.com.
+            </div>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Ask something, or click a quick prompt on the left..."
+          ></textarea>
+          <button id="sendBtn" type="button">Send</button>
+        </div>
+
+        <div class="deploy-note">
+          Deployed via GitHub Pages · Soon to be powered by your home rig.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>
+
