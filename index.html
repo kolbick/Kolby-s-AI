@@ -7,89 +7,41 @@
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app">
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-logo">
-          <span class="brand-emoji">☠️</span>
-        </div>
-        <div class="brand-text">
-          <div class="brand-name">Kolby’s AI V2.2</div>
-          <div class="brand-tagline">Best AI so far</div>
-        </div>
-      </div>
-
-      <div class="badge-row">
-        <span class="badge badge-primary">RTX 3080 · Local</span>
-        <span class="badge badge-muted">No logins · No cloud</span>
-      </div>
-
-      <div class="section-title">Quick prompts</div>
-      <ul class="prompt-list">
-        <li class="prompt-item" data-prompt="Explain how you were created and how you run on my hardware.">
-          ⚙️ Creation story
-        </li>
-        <li class="prompt-item" data-prompt="Give a quick, friendly overview of what you can help me with.">
-          💡 What can you do?
-        </li>
-        <li class="prompt-item" data-prompt="Help me plan my day so I don't burn out.">
-          📅 Plan my day
-        </li>
-        <li class="prompt-item" data-prompt="Summarize my options if I want to self-host AI on consumer hardware.">
-          🖥️ Self-host advice
-        </li>
-      </ul>
-
-      <div class="sidebar-footer">
-        <div class="footer-label">Status</div>
-        <div class="footer-status">
-          <span class="status-dot"></span>
-          <span id="statusText">Frontend online · Backend coming next</span>
-        </div>
-      </div>
-    </aside>
-
-    <main class="main">
-      <div class="main-header">
-        <div class="header-title-block">
-          <h1>Kolby’s AI</h1>
-          <p>Fast, local, and unapologetically opinionated.</p>
-        </div>
-        <div class="header-meta">
-          <span class="pill pill-gold">V2.2</span>
-          <span class="pill pill-soft">Pirate mode enabled</span>
-        </div>
-      </div>
-
-      <section class="chat-card">
-        <div class="chat-bg"></div>
-
-        <div id="chatLog" class="chat-log">
-          <div class="msg msg-ai msg-system">
-            Welcome aboard. This is the web version of Kolby’s AI. The UI is live; the brain will connect to your PC once we wire the backend.
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">☠️</div>
+          <div class="logo-text">
+            <div class="logo-title">Kolby’s AI V2.2</div>
+            <div class="logo-subtitle">Best AI so far</div>
           </div>
         </div>
 
-        <div class="input-row">
-          <textarea
-            id="messageInput"
-            rows="1"
-            placeholder="Ask something, or click a quick prompt on the left..."
-          ></textarea>
-          <button id="sendBtn" type="button">
-            <span>Send</span>
-          </button>
+        <div class="sidebar-meta">
+          <span class="chip chip-primary">RTX 3080 · Local</span>
+          <span class="chip chip-muted">No logins · No cloud</span>
         </div>
-      </section>
-
-      <div class="main-footer">
-        <span class="footnote">
-          Deployed via GitHub Pages · Soon to be powered by your home rig.
-        </span>
       </div>
-    </main>
-  </div>
 
-  <script src="assets/script.js"></script>
-</body>
-</html>
+      <div class="sidebar-section">
+        <div class="section-label">Today</div>
+        <ul class="chat-list">
+          <li class="chat-item chat-item-active">Kolby’s AI V2.2</li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">Quick prompts</div>
+        <ul class="prompt-list">
+          <li class="prompt-item" data-prompt="Explain how you were created and how you run on my hardware.">
+            ⚙️ Creation story
+          </li>
+          <li class="prompt-item" data-prompt="Give a quick, friendly overview of what you can help me with.">
+            💡 What can you do?
+          </li>
+          <li class="prompt-item" data-prompt="Help me plan my day so I don't burn out.">
+            📅 Plan my day
+          </li>
+          <li class="prompt-item" data-pr
