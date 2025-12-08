@@ -162,8 +162,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* top gradient band, like OpenWebUI */
-  background: linear-gradient(180deg, #f5efff 0, #f5efff 80px, transparent 160px);
+  background: linear-gradient(
+    180deg,
+    #f5efff 0,
+    #f5efff 80px,
+    transparent 160px
+  );
 }
 
 /* HEADER */
