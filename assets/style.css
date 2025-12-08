@@ -1,19 +1,19 @@
 :root {
-  --bg: #f8f3ea;
+  --bg: #f7f3ec;
   --bg-elevated: #ffffff;
-  --sidebar-bg: #f4ecff;
+  --sidebar-bg: #f5edff;
   --sidebar-border: #e0d2ff;
-  --accent: #f0a826;
-  --accent-soft: #ffe4b3;
+  --accent: #f4a425;
+  --accent-soft: #ffe6ba;
   --purple: #5a35b1;
-  --purple-soft: #e2d7ff;
-  --text: #1d1426;
-  --text-soft: #5b5266;
+  --purple-soft: #e4daff;
+  --text: #22172f;
+  --text-soft: #6a5c7a;
   --danger: #e0564a;
-  --radius-lg: 18px;
+  --radius-lg: 20px;
   --radius-md: 12px;
   --radius-sm: 8px;
-  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 22px 45px rgba(0, 0, 0, 0.08);
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
     "Segoe UI", sans-serif;
 }
@@ -33,11 +33,12 @@ body {
 
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at top left, #fdf7ef 0, #f4f0ff 40%, #f8f3ea 100%);
+  background:
+    radial-gradient(circle at top left, #fdf7ef 0, #f4f0ff 40%, #f7f3ec 100%);
   color: var(--text);
 }
 
-/* Shell layout */
+/* ========== LAYOUT SHELL ========== */
 
 .app-shell {
   display: grid;
@@ -47,13 +48,13 @@ body {
   overflow: hidden;
 }
 
-/* Sidebar */
+/* ========== SIDEBAR ========== */
 
 .sidebar {
   display: flex;
   flex-direction: column;
   padding: 18px 16px;
-  background: linear-gradient(180deg, var(--sidebar-bg), #f9f3ff);
+  background: linear-gradient(180deg, var(--sidebar-bg), #faf3ff);
   border-right: 1px solid var(--sidebar-border);
 }
 
@@ -153,25 +154,27 @@ body {
   background: var(--danger);
 }
 
-/* Main */
+/* ========== MAIN AREA ========== */
 
 .main {
+  position: relative;
+  padding: 20px 32px;
   display: flex;
   flex-direction: column;
-  position: relative;
-  padding: 20px 28px;
   align-items: center;
+  /* top gradient band, like OpenWebUI */
+  background: linear-gradient(180deg, #f5efff 0, #f5efff 80px, transparent 160px);
 }
 
-/* Header */
+/* HEADER */
 
 .main-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1120px;
 }
 
 .main-header h1 {
@@ -186,38 +189,38 @@ body {
   margin-top: 2px;
 }
 
-/* Watermark – aligned with chat panel width */
+/* WATERMARK */
 
 .watermark {
   position: absolute;
-  top: 80px;
+  top: 90px;
   bottom: 40px;
   left: 50%;
-  width: 1100px;
-  max-width: calc(100% - 56px);
+  width: 1120px;
+  max-width: calc(100% - 64px);
   transform: translateX(-50%);
   pointer-events: none;
-  opacity: 0.22; /* a bit stronger */
+  opacity: 0.26;
   background-image: url("img/logo.png");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 60%;
-  filter: saturate(1.05);
+  background-size: 58%;
+  filter: saturate(1.1);
 }
 
-/* Chat panel */
+/* CHAT PANEL */
 
 .chat-panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
   padding: 14px 14px 10px;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 110px);
   width: 100%;
-  max-width: 1100px;
+  max-width: 1120px;
   z-index: 1;
 }
 
@@ -263,7 +266,7 @@ body {
   line-height: 1.5;
 }
 
-/* Input row */
+/* INPUT ROW */
 
 .input-row {
   display: flex;
@@ -279,7 +282,7 @@ body {
   min-height: 40px;
   max-height: 120px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   padding: 10px 12px;
   font-family: inherit;
   font-size: 14px;
@@ -291,7 +294,7 @@ body {
   border-color: var(--purple);
 }
 
-/* Buttons */
+/* BUTTONS */
 
 .btn {
   border-radius: 999px;
@@ -320,7 +323,7 @@ body {
 .btn.ghost {
   background: transparent;
   color: var(--text-soft);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.09);
 }
 
 .btn.primary:hover {
@@ -344,7 +347,7 @@ body {
   width: 100%;
 }
 
-/* Modal */
+/* MODAL */
 
 .modal-backdrop {
   position: fixed;
@@ -401,7 +404,7 @@ body {
   gap: 8px;
 }
 
-/* Responsive */
+/* RESPONSIVE */
 
 @media (max-width: 900px) {
   .app-shell {
@@ -414,6 +417,7 @@ body {
 
   .main {
     padding: 12px;
+    background: #f7f3ec;
   }
 
   .main-header,
@@ -426,6 +430,6 @@ body {
   }
 
   .watermark {
-    display: none; /* keep mobile clean */
+    display: none;
   }
 }
