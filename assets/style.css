@@ -202,17 +202,17 @@ body {
   background: rgba(0, 0, 0, 0.04);
 }
 
-/* Watermark */
-
 .watermark {
   position: absolute;
   inset: 70px 40px 70px 40px;
   pointer-events: none;
-  background-image: url("assets/img/logo.png");
+  background-image: url("assets/img/logo-bg.png"); /* ← changed */
   background-repeat: no-repeat;
   background-position: center;
   background-size: 58%;
   opacity: 0.16;
+}
+
 }
 
 /* Chat shell */
