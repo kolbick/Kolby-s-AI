@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Treatment Plan</title>
-  <!-- Use the existing Kolby’s AI stylesheet for consistent styling -->
-  <link rel="stylesheet" href="style.css?v=kolby-v1" />
+  <!-- Use the shared stylesheet for consistent styling -->
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
   <style>
     /* Additional styles specific to the plan page */
     .page-container {
@@ -30,7 +30,8 @@
       width: 100%;
       border-collapse: collapse;
     }
-    .plan-table th, .plan-table td {
+    .plan-table th,
+    .plan-table td {
       border: 1px solid var(--border-soft);
       padding: 8px;
     }
@@ -84,18 +85,15 @@
     if (patientRecord.problems.length > 0) {
       patientRecord.problems.forEach((problem, idx) => {
         const tr = document.createElement('tr');
-        // Use corresponding progress as evidence when available, otherwise leave blank
         const evidence = patientRecord.progress[idx] || '';
-        // Use corresponding goal or aggregate goals for this problem
         const goal = patientRecord.goals[idx] || patientRecord.goals.join(', ');
-        // Use corresponding intervention or aggregate interventions for this problem
         const intervention = patientRecord.interventions[idx] || patientRecord.interventions.join(', ');
-        tr.innerHTML = '<td>' + problem + '</td><td>' + evidence + '</td><td>' + goal + '</td><td>' + intervention + '</td>';
+        tr.innerHTML = `<td>${problem}</td><td>${evidence}</td><td>${goal}</td><td>${intervention}</td>`;
         tbody.appendChild(tr);
       });
     } else {
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td colspan="4">No treatment plan yet. Add notes on the main page to generate one.</td>';
+      tr.innerHTML = '<td colspan="4">No treatment plan yet. Add notes on the note entry page to generate one.</td>';
       tbody.appendChild(tr);
     }
     // Populate date established (today's date for demonstration)
@@ -105,12 +103,12 @@
     document.getElementById('overallGoal').textContent = patientRecord.goals.join(', ');
     // Action button handlers
     document.getElementById('viewDischarge').onclick = () => { window.location.href = 'discharge.html'; };
-    document.getElementById('backNote').onclick = () => { window.location.href = 'index.html'; };
+    document.getElementById('backNote').onclick = () => { window.location.href = 'note.html'; };
     document.getElementById('resetRecord').onclick = () => {
       if (confirm('Are you sure you want to reset the patient record?')) {
         localStorage.removeItem('patientRecord');
         localStorage.removeItem('dischargeRecord');
-        window.location.href = 'index.html';
+        window.location.href = 'note.html';
       }
     };
   </script>

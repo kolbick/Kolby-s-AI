@@ -4,18 +4,17 @@
   <meta charset="UTF-8" />
   <title>Kolby’s AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Use the shared stylesheet for a consistent look across all pages -->
   <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
 </head>
 <body>
   <div class="app">
-
-    <!-- SIDEBAR -->
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-brand">
         <img src="assets/img/logo.png" alt="Kolby's AI logo" class="brand-logo" />
         <span class="brand-name">Kolby’s AI</span>
       </div>
-
       <nav class="sidebar-nav">
         <button class="nav-item active">
           <span class="nav-icon">☰</span>
@@ -34,34 +33,23 @@
           <span>Settings</span>
         </button>
       </nav>
-
       <div class="sidebar-section">
         <div class="sidebar-section-title">Models</div>
-        <ul class="model-list" id="model-list">
-          <!-- Filled by JS -->
-        </ul>
+        <ul class="model-list" id="model-list"><!-- Filled by JS --></ul>
       </div>
     </aside>
-
-    <!-- MAIN AREA -->
+    <!-- Main area -->
     <main class="main">
-
       <header class="topbar">
         <h1 class="topbar-title">Kolby’s AI</h1>
         <button class="btn-outline" id="sign-in-btn">Sign In</button>
       </header>
-
-      <!-- Watermark -->
       <div class="watermark"></div>
-
-      <!-- Chat area (empty until backend) -->
+      <!-- Chat area -->
       <section class="chat-shell">
-
         <div class="chat-empty-message" id="chat-empty">
-          <!-- You can change this copy to whatever you like -->
           <p>Select a model on the left and start chatting.</p>
         </div>
-
         <form class="chat-input-row" id="chat-form">
           <input
             id="chat-input"
@@ -74,12 +62,10 @@
             Send
           </button>
         </form>
-
       </section>
     </main>
   </div>
-
-  <!-- Login modal (UI only for now) -->
+  <!-- Login modal -->
   <div class="modal-backdrop hidden" id="login-modal">
     <div class="modal">
       <h2>Sign in</h2>
@@ -102,7 +88,6 @@
       </form>
     </div>
   </div>
-
   <script src="assets/app.js"></script>
 </body>
 </html>

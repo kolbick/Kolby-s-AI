@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Discharge Summary</title>
-  <!-- Use the existing Kolby’s AI stylesheet for consistent styling -->
-  <link rel="stylesheet" href="style.css?v=kolby-v1" />
+  <!-- Use the shared stylesheet for consistent styling -->
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
   <style>
     /* Additional styles for the discharge summary page */
     .page-container {
@@ -44,11 +44,11 @@
     </div>
     <div class="section">
       <h2>Summary</h2>
-      <div class="field"><strong>Reason for Admission:</strong><br><span id="reason"></span></div>
-      <div class="field"><strong>Course of Treatment:</strong><br>
+      <div class="field"><strong>Reason for Admission:</strong><br /><span id="reason"></span></div>
+      <div class="field"><strong>Course of Treatment:</strong><br />
         <ul id="courseList"></ul>
       </div>
-      <div class="field"><strong>Aftercare Planning:</strong><br>
+      <div class="field"><strong>Aftercare Planning:</strong><br />
         <ul id="aftercareList"></ul>
       </div>
     </div>
@@ -62,7 +62,7 @@
     // Fetch the discharge record
     const dischargeRecord = JSON.parse(localStorage.getItem('dischargeRecord') || 'null') || { reason: '', course: [], aftercare: [] };
     // Populate summary fields
-    document.getElementById('reason').textContent = dischargeRecord.reason || 'No discharge summary yet. Add notes on the main page to generate one.';
+    document.getElementById('reason').textContent = dischargeRecord.reason || 'No discharge summary yet. Add notes on the note entry page to generate one.';
     const courseList = document.getElementById('courseList');
     if (dischargeRecord.course && dischargeRecord.course.length) {
       dischargeRecord.course.forEach((item) => {
@@ -87,19 +87,19 @@
       li.textContent = 'No aftercare planning recorded.';
       aftercareList.appendChild(li);
     }
-    // Fill admission and discharge dates with today's date for demonstration
+    // For demonstration, fill admission and discharge dates with today's date
     const now = new Date();
     document.getElementById('admissionDate').textContent = now.toLocaleDateString();
     document.getElementById('dischargeDate').textContent = now.toLocaleDateString();
     document.getElementById('dischargeType').textContent = '';
     // Action buttons
     document.getElementById('viewPlan').onclick = () => { window.location.href = 'plan.html'; };
-    document.getElementById('backNote').onclick = () => { window.location.href = 'index.html'; };
+    document.getElementById('backNote').onclick = () => { window.location.href = 'note.html'; };
     document.getElementById('resetRecord').onclick = () => {
       if (confirm('Are you sure you want to reset the patient record?')) {
         localStorage.removeItem('patientRecord');
         localStorage.removeItem('dischargeRecord');
-        window.location.href = 'index.html';
+        window.location.href = 'note.html';
       }
     };
   </script>

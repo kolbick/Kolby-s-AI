@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Treatment Plan Demo</title>
-  <!-- Use your existing Kolby’s AI stylesheet for consistent styling -->
+  <title>Note Entry – Kolby’s AI</title>
+  <!-- Use the shared stylesheet for a consistent look -->
   <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
   <style>
     /* Additional styles for the note entry page */
@@ -14,7 +14,7 @@
     }
     .note-container textarea {
       width: 100%;
-      min-height: 150px;
+      min-height: 180px;
       padding: 10px;
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-md);
@@ -31,27 +31,35 @@
 </head>
 <body>
   <div class="note-container">
-    <h1>Treatment Plan Demo</h1>
-    <p>Paste a clinical note below. When you click “Generate &amp; View Plan” the updated treatment plan and discharge summary will appear on the next page.</p>
+    <h1>Enter Clinical Note</h1>
+    <p>Paste a clinical note below. When you click “Generate &amp; View Plan” the updated treatment plan and discharge summary will be built using your local model.</p>
     <textarea id="noteInput" placeholder="Paste clinical note here"></textarea>
     <div class="note-buttons">
       <button id="generateViewBtn" class="btn-primary">Generate &amp; View Plan</button>
       <button id="resetBtn" class="btn-ghost">Reset Patient Record</button>
     </div>
   </div>
-
   <script>
     /*
-      This script maintains a simple patient record in localStorage and updates
-      a treatment plan and discharge summary when a new note is added.  The
-      previous version used simple keyword heuristics.  To leverage your local
-      Open WebUI model (e.g. `llama3.2:latest`) we now call the chat
-      completions API and ask the model to return a JSON summary of the note.
-      You will need to paste your Open WebUI API key into the
-      `OPENWEBUI_API_KEY` constant below.
+      Note entry page script
+
+      This page collects a clinical note, calls your local Open WebUI model
+      to extract structured information and summary text, then merges the
+      results into a patient record saved in localStorage.  The updated
+      record powers the treatment plan and discharge summary pages.
+
+      Before using this page, paste your JWT token into the
+      OPENWEBUI_JWT constant.  You can find your JWT on the Open WebUI
+      Settings → Account page.  See API docs: you can authenticate with a
+      JWT or an API key【6884566221690†L23-L27】.
     */
-    const OPENWEBUI_API_KEY = 'eyJhbGciOiJlUzl1NilslnR5cCl6lkpXVCJ9.eyJpZCl6ljM5NWUyNDlyLTk2ZTMtNDlmNi1iYjl';
+    const OPENWEBUI_JWT = '';
     const OPENWEBUI_URL = 'http://localhost:3000/api/chat/completions';
+    // Specify which model should be used for summarising notes.  If your
+    // model names change, update this constant accordingly.  This ID
+    // must match a workspace model in Open WebUI, for example
+    // "Changing Tides AI Proposal (Test)".
+    const OPENWEBUI_MODEL_ID = 'Changing Tides AI Proposal (Test)';
 
     // Load existing records or initialise empty ones
     let patientRecord = JSON.parse(localStorage.getItem('patientRecord') || 'null') || {
@@ -69,28 +77,26 @@
     };
 
     /**
-     * Call the Open WebUI chat completions endpoint and ask the model to
-     * summarise the clinical note.  The system prompt instructs the
-     * model to extract structured information (problems, goals,
-     * interventions, progress notes and aftercare items) and produce
-     * a JSON object with those fields plus a summary sentence.  If the
-     * model fails or the API key is missing, the function returns null.
+     * Call Open WebUI to summarise a clinical note.  Returns a
+     * JavaScript object with keys: problems, goals, interventions,
+     * progress, aftercare and summary.  If authentication or parsing
+     * fails, returns null and a warning will be printed to the console.
      *
-     * @param {string} note The raw clinical note entered by the user.
-     * @returns {Promise<Object|null>} The parsed JSON object or null on error.
+     * @param {string} note The raw note text
+     * @returns {Promise<Object|null>} Structured summary or null
      */
     async function callOpenWebUISummary(note) {
-      if (!OPENWEBUI_API_KEY) {
-        console.warn('No Open WebUI API key set.  Please edit note.html and set OPENWEBUI_API_KEY.');
+      if (!OPENWEBUI_JWT) {
+        console.warn('No JWT token set. Please set OPENWEBUI_JWT in note.html.');
         return null;
       }
       try {
         const payload = {
-          model: 'llama3.2:latest',
+          model: OPENWEBUI_MODEL_ID,
           messages: [
             {
               role: 'system',
-              content: `You are a treatment plan assistant.  When given a clinical note you should extract the patient's current problems, goals, interventions, progress notes and aftercare items.  Also provide a concise summary of the note to append to the course of treatment.  Return a valid JSON object with the following keys: "problems", "goals", "interventions", "progress", "aftercare", and "summary".  Each value should be an array of strings except for summary which should be a single string.  Do not include explanations or any additional keys.`
+              content: `You are a treatment plan assistant. When given a clinical note you should extract the patient's current problems, goals, interventions, progress notes and aftercare items. Also provide a concise summary of the note to append to the course of treatment. Return a valid JSON object with the following keys: "problems", "goals", "interventions", "progress", "aftercare", and "summary". Each value should be an array of strings except for summary which should be a single string. Do not include explanations or any additional keys.`
             },
             { role: 'user', content: note }
           ]
@@ -98,19 +104,18 @@
         const response = await fetch(OPENWEBUI_URL, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENWEBUI_API_KEY}`,
+            'Authorization': `Bearer ${OPENWEBUI_JWT}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(payload)
         });
         const data = await response.json();
-        const message = data?.choices?.[0]?.message?.content;
-        if (!message) throw new Error('No message returned from Open WebUI');
-        // Attempt to parse JSON; the assistant should return JSON per the system prompt
+        const content = data?.choices?.[0]?.message?.content;
+        if (!content) throw new Error('No content returned from Open WebUI');
         try {
-          return JSON.parse(message);
+          return JSON.parse(content);
         } catch (e) {
-          console.error('Failed to parse JSON from model response:', message);
+          console.error('Failed to parse JSON:', content);
           return null;
         }
       } catch (err) {
@@ -120,24 +125,26 @@
     }
 
     /**
-     * Apply updates from the model summary to the patient record and discharge record.
-     * If the model returns null, no updates are applied.
+     * Merge the summary returned from the model into the stored
+     * patientRecord and dischargeRecord.  If summary is null the
+     * function falls back to using the first two sentences of the note
+     * as the course of treatment.
      *
-     * @param {Object} summary The object returned from callOpenWebUISummary.
-     * @param {string} note The original note text (used to build fallback summary).
+     * @param {Object|null} summary Parsed summary object
+     * @param {string} note Original clinical note
      */
     function mergeSummaryIntoRecords(summary, note) {
       if (!summary) {
-        // Fallback: use first two sentences of the note for course of treatment
+        // Fallback: use first two sentences for the course of treatment
         const sentences = note.split(/[.!?]/).filter((s) => s.trim().length > 0);
-        const fallbackSummary = sentences.slice(0, 2).join('. ') + '.';
-        if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + fallbackSummary;
-        dischargeRecord.course.push(fallbackSummary);
+        const fallback = sentences.slice(0, 2).join('. ') + '.';
+        if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + fallback;
+        dischargeRecord.course.push(fallback);
         localStorage.setItem('patientRecord', JSON.stringify(patientRecord));
         localStorage.setItem('dischargeRecord', JSON.stringify(dischargeRecord));
         return;
       }
-      // Merge array fields
+      // Merge lists while avoiding duplicates
       ['problems', 'goals', 'interventions', 'aftercare'].forEach((field) => {
         if (Array.isArray(summary[field])) {
           summary[field].forEach((item) => {
@@ -146,16 +153,15 @@
         }
       });
       if (Array.isArray(summary.progress)) {
-        summary.progress.forEach((item) => patientRecord.progress.push(item));
+        summary.progress.forEach((p) => patientRecord.progress.push(p));
       }
-      // Update discharge record
       const summaryText = summary.summary || '';
       if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + summaryText;
       if (summaryText) dischargeRecord.course.push(summaryText);
       if (Array.isArray(summary.aftercare)) {
         summary.aftercare.forEach((item) => dischargeRecord.aftercare.push(item));
       }
-      // Persist changes
+      // Save to localStorage
       localStorage.setItem('patientRecord', JSON.stringify(patientRecord));
       localStorage.setItem('dischargeRecord', JSON.stringify(dischargeRecord));
     }
@@ -163,7 +169,6 @@
     document.getElementById('generateViewBtn').addEventListener('click', () => {
       const note = document.getElementById('noteInput').value.trim();
       if (!note) return;
-      // Use the local model to summarise the note and update the records
       (async () => {
         const summary = await callOpenWebUISummary(note);
         mergeSummaryIntoRecords(summary, note);
