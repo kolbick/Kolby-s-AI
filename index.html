@@ -62,6 +62,23 @@
           <p>Select a model on the left and start chatting.</p>
         </div>
 
+        <!-- Note entry area -->
+        <form id="note-form" class="note-form">
+          <textarea
+            id="note-text"
+            placeholder="Enter clinical note here..."
+            required
+          ></textarea>
+          <div class="note-actions">
+            <button type="button" id="note-generate" class="btn-primary">
+              Generate Plan &amp; Summary
+            </button>
+            <button type="button" id="note-reset" class="btn-ghost">
+              Reset Record
+            </button>
+          </div>
+        </form>
+
         <form class="chat-input-row" id="chat-form">
           <input
             id="chat-input"
@@ -104,5 +121,96 @@
   </div>
 
   <script src="assets/app.js"></script>
+
+  <!-- Inline script to handle note entry and redirect to plan/discharge pages -->
+  <script>
+    // Maintain patient and discharge records across pages using localStorage
+    let patientRecord = JSON.parse(localStorage.getItem('patientRecord') || 'null') || {
+      problems: [],
+      goals: [],
+      interventions: [],
+      progress: [],
+      barriers: []
+    };
+    let dischargeRecord = JSON.parse(localStorage.getItem('dischargeRecord') || 'null') || {
+      reason: '',
+      course: [],
+      response: [],
+      aftercare: []
+    };
+
+    // Simple heuristic parser for clinical notes
+    function parseNote(note) {
+      const lower = note.toLowerCase();
+      const updates = { progress: [], goals: [], interventions: [], problems: [], aftercare: [] };
+      const matchSober = lower.match(/(\d+)\s*days?\s*sober/);
+      if (matchSober) {
+        updates.progress.push(`Client reports ${matchSober[1]} days sober.`);
+        if (!patientRecord.goals.includes('Maintain sobriety')) updates.goals.push('Maintain sobriety');
+      }
+      if (lower.includes('sleep')) {
+        if (lower.includes('poor')) {
+          if (!patientRecord.problems.includes('Poor sleep hygiene')) updates.problems.push('Poor sleep hygiene');
+          if (!patientRecord.goals.includes('Improve sleep hygiene')) updates.goals.push('Improve sleep hygiene');
+        } else if (lower.includes('improved')) {
+          updates.progress.push('Sleep is improving.');
+          if (!patientRecord.goals.includes('Improve sleep hygiene')) updates.goals.push('Improve sleep hygiene');
+        }
+      }
+      if (lower.includes('craving') || lower.includes('coping')) {
+        if (!patientRecord.interventions.includes('Coping skills training')) updates.interventions.push('Coping skills training');
+        if (!patientRecord.goals.includes('Develop coping skills')) updates.goals.push('Develop coping skills');
+      }
+      if (lower.includes('trigger')) {
+        if (!patientRecord.problems.includes('Identified triggers')) updates.problems.push('Identified triggers');
+        if (!patientRecord.goals.includes('Recognize and manage triggers')) updates.goals.push('Recognize and manage triggers');
+      }
+      if (lower.includes('aftercare') || lower.includes('appointment scheduled')) {
+        updates.aftercare.push('Aftercare planning underway.');
+      }
+      return updates;
+    }
+
+    // Apply updates from a new note to the stored record
+    function applyUpdates(note) {
+      const updates = parseNote(note);
+      ['problems', 'goals', 'interventions', 'aftercare'].forEach((field) => {
+        updates[field].forEach((item) => {
+          if (!patientRecord[field].includes(item)) patientRecord[field].push(item);
+        });
+      });
+      updates.progress.forEach((item) => patientRecord.progress.push(item));
+      // Use first two sentences as a summary for discharge course
+      const sentences = note.split(/[.!?]/).filter((s) => s.trim().length > 0);
+      const summary = sentences.slice(0, 2).join('. ') + '.';
+      if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + summary;
+      dischargeRecord.course.push(summary);
+      updates.aftercare.forEach((item) => dischargeRecord.aftercare.push(item));
+      localStorage.setItem('patientRecord', JSON.stringify(patientRecord));
+      localStorage.setItem('dischargeRecord', JSON.stringify(dischargeRecord));
+    }
+
+    // Event listeners for note actions
+    document.addEventListener('DOMContentLoaded', () => {
+      const generateBtn = document.getElementById('note-generate');
+      const resetBtn = document.getElementById('note-reset');
+      generateBtn.addEventListener('click', () => {
+        const note = document.getElementById('note-text').value.trim();
+        if (!note) return;
+        applyUpdates(note);
+        document.getElementById('note-text').value = '';
+        // Redirect to treatment plan page
+        window.location.href = 'plan.html';
+      });
+      resetBtn.addEventListener('click', () => {
+        if (!confirm('Are you sure you want to reset the patient record?')) return;
+        patientRecord = { problems: [], goals: [], interventions: [], progress: [], barriers: [] };
+        dischargeRecord = { reason: '', course: [], response: [], aftercare: [] };
+        localStorage.removeItem('patientRecord');
+        localStorage.removeItem('dischargeRecord');
+        alert('Record reset.');
+      });
+    });
+  </script>
 </body>
 </html>

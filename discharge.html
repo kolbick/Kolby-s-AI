@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Discharge Summary</title>
+  <!-- Use the existing Kolby’s AI stylesheet for consistent styling -->
+  <link rel="stylesheet" href="style.css?v=kolby-v1" />
+  <style>
+    /* Additional styles for the discharge summary page */
+    .page-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+    .section {
+      margin-bottom: 24px;
+      background: white;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .section h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    .field {
+      margin-bottom: 8px;
+    }
+    .actions button {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <h1>Discharge Summary</h1>
+    <p>This page displays the discharge summary generated from your notes. Fields left blank indicate no data has been provided.</p>
+    <div class="section">
+      <h2>Client Information</h2>
+      <div class="field"><strong>Client Name:</strong> <span id="clientName">________________</span></div>
+      <div class="field"><strong>Admission Date:</strong> <span id="admissionDate"></span></div>
+      <div class="field"><strong>Discharge Date:</strong> <span id="dischargeDate"></span></div>
+      <div class="field"><strong>Type of Discharge:</strong> <span id="dischargeType"></span></div>
+    </div>
+    <div class="section">
+      <h2>Summary</h2>
+      <div class="field"><strong>Reason for Admission:</strong><br><span id="reason"></span></div>
+      <div class="field"><strong>Course of Treatment:</strong><br>
+        <ul id="courseList"></ul>
+      </div>
+      <div class="field"><strong>Aftercare Planning:</strong><br>
+        <ul id="aftercareList"></ul>
+      </div>
+    </div>
+    <div class="section actions">
+      <button class="btn-outline" id="viewPlan">View Treatment Plan</button>
+      <button class="btn-outline" id="backNote">Back to Note Entry</button>
+      <button class="btn-ghost" id="resetRecord">Reset Record</button>
+    </div>
+  </div>
+  <script>
+    // Fetch the discharge record
+    const dischargeRecord = JSON.parse(localStorage.getItem('dischargeRecord') || 'null') || { reason: '', course: [], aftercare: [] };
+    // Populate summary fields
+    document.getElementById('reason').textContent = dischargeRecord.reason || 'No discharge summary yet. Add notes on the main page to generate one.';
+    const courseList = document.getElementById('courseList');
+    if (dischargeRecord.course && dischargeRecord.course.length) {
+      dischargeRecord.course.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        courseList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.textContent = 'No course of treatment recorded.';
+      courseList.appendChild(li);
+    }
+    const aftercareList = document.getElementById('aftercareList');
+    if (dischargeRecord.aftercare && dischargeRecord.aftercare.length) {
+      dischargeRecord.aftercare.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        aftercareList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.textContent = 'No aftercare planning recorded.';
+      aftercareList.appendChild(li);
+    }
+    // Fill admission and discharge dates with today's date for demonstration
+    const now = new Date();
+    document.getElementById('admissionDate').textContent = now.toLocaleDateString();
+    document.getElementById('dischargeDate').textContent = now.toLocaleDateString();
+    document.getElementById('dischargeType').textContent = '';
+    // Action buttons
+    document.getElementById('viewPlan').onclick = () => { window.location.href = 'plan.html'; };
+    document.getElementById('backNote').onclick = () => { window.location.href = 'index.html'; };
+    document.getElementById('resetRecord').onclick = () => {
+      if (confirm('Are you sure you want to reset the patient record?')) {
+        localStorage.removeItem('patientRecord');
+        localStorage.removeItem('dischargeRecord');
+        window.location.href = 'index.html';
+      }
+    };
+  </script>
+</body>
+</html>
