@@ -21,7 +21,7 @@
 // string until you have a token, then replace the empty string with
 // your token (do not surround the token with quotes again).  See
 // docs: you can authenticate using a JWT token or an API key【6884566221690†L23-L27】.
-const OPENWEBUI_JWT = '';
+const OPENWEBUI_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28';
 
 // Endpoint for the Open WebUI chat completions API.  Change the host
 // and port if your WebUI runs on a different machine or port.
