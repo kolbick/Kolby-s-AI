@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kolby’s AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Use the shared stylesheet for a consistent look across all pages -->
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/img/logo.png" alt="Kolby's AI logo" class="brand-logo" />
+        <span class="brand-name">Kolby’s AI</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active">
+          <span class="nav-icon">☰</span>
+          <span>Models</span>
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon">💬</span>
+          <span>Chat</span>
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon">⟳</span>
+          <span>History</span>
+        </button>
+        <button class="nav-item">
+          <span class="nav-icon">⚙︎</span>
+          <span>Settings</span>
+        </button>
+      </nav>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Models</div>
+        <ul class="model-list" id="model-list"><!-- Filled by JS --></ul>
+      </div>
+    </aside>
+    <!-- Main area -->
+    <main class="main">
+      <header class="topbar">
+        <h1 class="topbar-title">Kolby’s AI</h1>
+        <button class="btn-outline" id="sign-in-btn">Sign In</button>
+      </header>
+      <div class="watermark"></div>
+      <!-- Chat area -->
+      <section class="chat-shell">
+        <div class="chat-empty-message" id="chat-empty">
+          <p>Select a model on the left and start chatting.</p>
+        </div>
+        <form class="chat-input-row" id="chat-form">
+          <input
+            id="chat-input"
+            class="chat-input"
+            type="text"
+            placeholder="Send a message..."
+            autocomplete="off"
+          />
+          <button type="submit" class="btn-primary" id="send-btn">
+            Send
+          </button>
+        </form>
+      </section>
+    </main>
+  </div>
+  <!-- Login modal -->
+  <div class="modal-backdrop hidden" id="login-modal">
+    <div class="modal">
+      <h2>Sign in</h2>
+      <p class="modal-subtitle">
+        This only controls access level; the actual auth will hook to your backend later.
+      </p>
+      <form id="login-form">
+        <label>
+          Email
+          <input type="email" id="login-email" required />
+        </label>
+        <label>
+          Password
+          <input type="password" id="login-password" required />
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" id="login-cancel">Cancel</button>
+          <button type="submit" class="btn-primary">Continue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

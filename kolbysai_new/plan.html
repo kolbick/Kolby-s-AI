@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Treatment Plan</title>
+  <!-- Use the shared stylesheet for consistent styling -->
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+  <style>
+    /* Additional styles specific to the plan page */
+    .page-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+    .section {
+      margin-bottom: 24px;
+      background: white;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .section h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    .field {
+      margin-bottom: 8px;
+    }
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .plan-table th,
+    .plan-table td {
+      border: 1px solid var(--border-soft);
+      padding: 8px;
+    }
+    .plan-table th {
+      background: var(--bg-sidebar);
+      text-align: left;
+    }
+    .actions button {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <h1>Treatment Plan</h1>
+    <p>This page displays the current treatment plan generated from your notes. Fields left blank indicate no data has been provided.</p>
+    <div class="section">
+      <h2>Client Information</h2>
+      <div class="field"><strong>Client Name:</strong> <span id="clientName">________________</span></div>
+      <div class="field"><strong>Date Established:</strong> <span id="dateEstablished"></span></div>
+      <div class="field"><strong>Medical Record:</strong> <span id="medicalRecord">_____________</span></div>
+      <div class="field"><strong>Diagnosis (Axis&nbsp;I–V):</strong> <span id="diagnosis">_____________</span></div>
+      <div class="field"><strong>Overall Treatment Goal:</strong> <span id="overallGoal"></span></div>
+    </div>
+    <div class="section">
+      <h2>Problem Areas</h2>
+      <table class="plan-table">
+        <thead>
+          <tr>
+            <th>Problem Area</th>
+            <th>As Evidenced By</th>
+            <th>Long Term Goal</th>
+            <th>Short Term Objectives &amp; Strategies</th>
+          </tr>
+        </thead>
+        <tbody id="planTableBody">
+        </tbody>
+      </table>
+    </div>
+    <div class="section actions">
+      <button class="btn-outline" id="viewDischarge">View Discharge Summary</button>
+      <button class="btn-outline" id="backNote">Back to Note Entry</button>
+      <button class="btn-ghost" id="resetRecord">Reset Record</button>
+    </div>
+  </div>
+  <script>
+    // Fetch the stored patient record
+    const patientRecord = JSON.parse(localStorage.getItem('patientRecord') || 'null') || { problems: [], goals: [], interventions: [], progress: [] };
+    const tbody = document.getElementById('planTableBody');
+    // Populate the treatment plan table
+    if (patientRecord.problems.length > 0) {
+      patientRecord.problems.forEach((problem, idx) => {
+        const tr = document.createElement('tr');
+        const evidence = patientRecord.progress[idx] || '';
+        const goal = patientRecord.goals[idx] || patientRecord.goals.join(', ');
+        const intervention = patientRecord.interventions[idx] || patientRecord.interventions.join(', ');
+        tr.innerHTML = `<td>${problem}</td><td>${evidence}</td><td>${goal}</td><td>${intervention}</td>`;
+        tbody.appendChild(tr);
+      });
+    } else {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="4">No treatment plan yet. Add notes on the note entry page to generate one.</td>';
+      tbody.appendChild(tr);
+    }
+    // Populate date established (today's date for demonstration)
+    const now = new Date();
+    document.getElementById('dateEstablished').textContent = now.toLocaleDateString();
+    // Display overall goals
+    document.getElementById('overallGoal').textContent = patientRecord.goals.join(', ');
+    // Action button handlers
+    document.getElementById('viewDischarge').onclick = () => { window.location.href = 'discharge.html'; };
+    document.getElementById('backNote').onclick = () => { window.location.href = 'note.html'; };
+    document.getElementById('resetRecord').onclick = () => {
+      if (confirm('Are you sure you want to reset the patient record?')) {
+        localStorage.removeItem('patientRecord');
+        localStorage.removeItem('dischargeRecord');
+        window.location.href = 'note.html';
+      }
+    };
+  </script>
+</body>
+</html>
