@@ -41,8 +41,19 @@
   </div>
 
   <script>
-    /* This script maintains a simple patient record in localStorage and updates
-       a treatment plan and discharge summary when a new note is added. */
+    /*
+      This script maintains a simple patient record in localStorage and updates
+      a treatment plan and discharge summary when a new note is added.  The
+      previous version used simple keyword heuristics.  To leverage your local
+      Open WebUI model (e.g. `llama3.2:latest`) we now call the chat
+      completions API and ask the model to return a JSON summary of the note.
+      You will need to paste your Open WebUI API key into the
+      `OPENWEBUI_API_KEY` constant below.
+    */
+    const OPENWEBUI_API_KEY = '';
+    const OPENWEBUI_URL = 'http://host.docker.interanl:11434';
+
+    // Load existing records or initialise empty ones
     let patientRecord = JSON.parse(localStorage.getItem('patientRecord') || 'null') || {
       problems: [],
       goals: [],
@@ -57,50 +68,94 @@
       aftercare: []
     };
 
-    function parseNote(note) {
-      const lower = note.toLowerCase();
-      const updates = { progress: [], goals: [], interventions: [], problems: [], aftercare: [] };
-      const matchSober = lower.match(/(\d+)\s*days?\s*sober/);
-      if (matchSober) {
-        updates.progress.push(`Client reports ${matchSober[1]} days sober.`);
-        if (!patientRecord.goals.includes('Maintain sobriety')) updates.goals.push('Maintain sobriety');
+    /**
+     * Call the Open WebUI chat completions endpoint and ask the model to
+     * summarise the clinical note.  The system prompt instructs the
+     * model to extract structured information (problems, goals,
+     * interventions, progress notes and aftercare items) and produce
+     * a JSON object with those fields plus a summary sentence.  If the
+     * model fails or the API key is missing, the function returns null.
+     *
+     * @param {string} note The raw clinical note entered by the user.
+     * @returns {Promise<Object|null>} The parsed JSON object or null on error.
+     */
+    async function callOpenWebUISummary(note) {
+      if (!OPENWEBUI_API_KEY) {
+        console.warn('No Open WebUI API key set.  Please edit note.html and set OPENWEBUI_API_KEY.');
+        return null;
       }
-      if (lower.includes('sleep')) {
-        if (lower.includes('poor')) {
-          if (!patientRecord.problems.includes('Poor sleep hygiene')) updates.problems.push('Poor sleep hygiene');
-          if (!patientRecord.goals.includes('Improve sleep hygiene')) updates.goals.push('Improve sleep hygiene');
-        } else if (lower.includes('improved')) {
-          updates.progress.push('Sleep is improving.');
-          if (!patientRecord.goals.includes('Improve sleep hygiene')) updates.goals.push('Improve sleep hygiene');
+      try {
+        const payload = {
+          model: 'llama3.2:latest',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a treatment plan assistant.  When given a clinical note you should extract the patient's current problems, goals, interventions, progress notes and aftercare items.  Also provide a concise summary of the note to append to the course of treatment.  Return a valid JSON object with the following keys: "problems", "goals", "interventions", "progress", "aftercare", and "summary".  Each value should be an array of strings except for summary which should be a single string.  Do not include explanations or any additional keys.`
+            },
+            { role: 'user', content: note }
+          ]
+        };
+        const response = await fetch(OPENWEBUI_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENWEBUI_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        const message = data?.choices?.[0]?.message?.content;
+        if (!message) throw new Error('No message returned from Open WebUI');
+        // Attempt to parse JSON; the assistant should return JSON per the system prompt
+        try {
+          return JSON.parse(message);
+        } catch (e) {
+          console.error('Failed to parse JSON from model response:', message);
+          return null;
         }
+      } catch (err) {
+        console.error('Error calling Open WebUI:', err);
+        return null;
       }
-      if (lower.includes('craving') || lower.includes('coping')) {
-        if (!patientRecord.interventions.includes('Coping skills training')) updates.interventions.push('Coping skills training');
-        if (!patientRecord.goals.includes('Develop coping skills')) updates.goals.push('Develop coping skills');
-      }
-      if (lower.includes('trigger')) {
-        if (!patientRecord.problems.includes('Identified triggers')) updates.problems.push('Identified triggers');
-        if (!patientRecord.goals.includes('Recognize and manage triggers')) updates.goals.push('Recognize and manage triggers');
-      }
-      if (lower.includes('aftercare') || lower.includes('appointment scheduled')) {
-        updates.aftercare.push('Aftercare planning underway.');
-      }
-      return updates;
     }
 
-    function applyUpdates(note) {
-      const updates = parseNote(note);
+    /**
+     * Apply updates from the model summary to the patient record and discharge record.
+     * If the model returns null, no updates are applied.
+     *
+     * @param {Object} summary The object returned from callOpenWebUISummary.
+     * @param {string} note The original note text (used to build fallback summary).
+     */
+    function mergeSummaryIntoRecords(summary, note) {
+      if (!summary) {
+        // Fallback: use first two sentences of the note for course of treatment
+        const sentences = note.split(/[.!?]/).filter((s) => s.trim().length > 0);
+        const fallbackSummary = sentences.slice(0, 2).join('. ') + '.';
+        if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + fallbackSummary;
+        dischargeRecord.course.push(fallbackSummary);
+        localStorage.setItem('patientRecord', JSON.stringify(patientRecord));
+        localStorage.setItem('dischargeRecord', JSON.stringify(dischargeRecord));
+        return;
+      }
+      // Merge array fields
       ['problems', 'goals', 'interventions', 'aftercare'].forEach((field) => {
-        updates[field].forEach((item) => {
-          if (!patientRecord[field].includes(item)) patientRecord[field].push(item);
-        });
+        if (Array.isArray(summary[field])) {
+          summary[field].forEach((item) => {
+            if (!patientRecord[field].includes(item)) patientRecord[field].push(item);
+          });
+        }
       });
-      updates.progress.forEach((item) => patientRecord.progress.push(item));
-      const sentences = note.split(/[.!?]/).filter((s) => s.trim().length > 0);
-      const summary = sentences.slice(0, 2).join('. ') + '.';
-      if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + summary;
-      dischargeRecord.course.push(summary);
-      updates.aftercare.forEach((item) => dischargeRecord.aftercare.push(item));
+      if (Array.isArray(summary.progress)) {
+        summary.progress.forEach((item) => patientRecord.progress.push(item));
+      }
+      // Update discharge record
+      const summaryText = summary.summary || '';
+      if (!dischargeRecord.reason) dischargeRecord.reason = 'Client admitted for treatment. Initial presentation: ' + summaryText;
+      if (summaryText) dischargeRecord.course.push(summaryText);
+      if (Array.isArray(summary.aftercare)) {
+        summary.aftercare.forEach((item) => dischargeRecord.aftercare.push(item));
+      }
+      // Persist changes
       localStorage.setItem('patientRecord', JSON.stringify(patientRecord));
       localStorage.setItem('dischargeRecord', JSON.stringify(dischargeRecord));
     }
@@ -108,9 +163,13 @@
     document.getElementById('generateViewBtn').addEventListener('click', () => {
       const note = document.getElementById('noteInput').value.trim();
       if (!note) return;
-      applyUpdates(note);
-      document.getElementById('noteInput').value = '';
-      window.location.href = 'plan.html';
+      // Use the local model to summarise the note and update the records
+      (async () => {
+        const summary = await callOpenWebUISummary(note);
+        mergeSummaryIntoRecords(summary, note);
+        document.getElementById('noteInput').value = '';
+        window.location.href = 'plan.html';
+      })();
     });
     document.getElementById('resetBtn').addEventListener('click', () => {
       if (!confirm('Are you sure you want to reset the patient record?')) return;

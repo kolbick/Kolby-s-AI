@@ -120,28 +120,6 @@ body {
   margin-bottom: 6px;
 }
 
-/* Note entry form styles */
-.note-form {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.note-form textarea {
-  width: 100%;
-  min-height: 150px;
-  padding: 10px;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
-  background: var(--bg-input);
-  resize: vertical;
-  font-family: var(--font-sans);
-}
-.note-actions {
-  display: flex;
-  gap: 10px;
-}
-
 .model-list {
   list-style: none;
   padding: 0;
