@@ -4,6 +4,31 @@
   <meta charset="UTF-8" />
   <title>Treatment Plan</title>
   <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+  <style>
+    .page-container {
+      max-width: 900px;
+      margin: 36px auto;
+      padding: 0 16px 40px;
+    }
+    .json-section {
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .json-section h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    pre {
+      background: #f9f4e7;
+      padding: 12px;
+      border-radius: 10px;
+      overflow: auto;
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  </style>
 </head>
 
 <body>
@@ -13,45 +38,58 @@
 
     <div id="planBody"></div>
 
-    <a href="note.html" class="btn btn-primary">Add Another Note</a>
-    <button id="resetBtn" class="btn btn-ghost">Reset Records</button>
+    <div class="actions">
+      <a href="note.html" class="btn btn-primary">Add Another Note</a>
+      <a href="discharge.html" class="btn btn-outline">View Discharge Summary</a>
+      <button id="resetBtn" class="btn btn-ghost">Reset Records</button>
+    </div>
   </div>
 
 <script>
-const record = JSON.parse(localStorage.getItem("patientRecord") || "{}");
+function loadRecord(key, fallback = {}) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch (e) {
+    console.warn(`Failed to parse ${key}`, e);
+    return fallback;
+  }
+}
+
+const record = loadRecord("patientRecord", {});
+
+function renderSection(title, data) {
+  const pretty = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+  return `
+    <div class="json-section">
+      <h2>${title}</h2>
+      <pre>${pretty || "No data yet."}</pre>
+    </div>
+  `;
+}
 
 function renderPlan() {
-  if (!record.problems || record.problems.length === 0) {
-    document.getElementById("planBody").innerHTML = "<p>No data yet.</p>";
+  const container = document.getElementById("planBody");
+
+  if (!record || Object.keys(record).length === 0) {
+    container.innerHTML = renderSection("Patient Record", "No data yet.");
     return;
   }
 
-  let html = "";
+  const sections = [
+    renderSection("Problems & Goals", record.problems && record.problems.length ? record.problems : "No problems captured yet."),
+    renderSection("Progress Notes", record.progress || "No progress captured yet."),
+    renderSection("Summary", record.summary || "No summary captured yet."),
+    renderSection("Full Patient Record", record)
+  ];
 
-  record.problems.forEach((p, i) => {
-    html += `
-      <div class="plan-block">
-        <h3>Problem ${i + 1}</h3>
-        <p><strong>Problem:</strong> ${p.problem || ""}</p>
-        <p><strong>As evidenced by:</strong> ${p.as_evidenced_by || ""}</p>
-        <p><strong>Long Term Goal:</strong> ${p.long_term_goal || ""}</p>
-
-        <strong>Short-Term Objectives:</strong>
-        <ul>${(p.short_term_objectives || []).map(o => `<li>${o}</li>`).join("")}</ul>
-
-        <strong>Interventions:</strong>
-        <ul>${(p.interventions || []).map(i => `<li>${i}</li>`).join("")}</ul>
-      </div>
-    `;
-  });
-
-  document.getElementById("planBody").innerHTML = html;
+  container.innerHTML = sections.join("");
 }
 
 renderPlan();
 
 document.getElementById("resetBtn").onclick = () => {
-  localStorage.clear();
+  localStorage.removeItem("patientRecord");
+  localStorage.removeItem("dischargeRecord");
   location.reload();
 };
 </script>
