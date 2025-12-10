@@ -4,9 +4,8 @@
 
 /* ---------- CONFIG ---------- */
 
-const OPENWEBUI_URL = "http://localhost:3000/api/chat/completions";
-// PASTE YOUR JWT OR API KEY HERE:
-const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
+const OPENWEBUI_URL = "PASTE_NGROK_URL_HERE/api/chat/completions";
+const OPENWEBUI_JWT = "PASTE_JWT_TOKEN_HERE";
 
 /* ---------- YOUR MODELS ---------- */
 
@@ -34,19 +33,19 @@ function loadModelList() {
 
   list.innerHTML = "";
 
-  MODELS.forEach((model, index) => {
+  MODELS.forEach((model) => {
     const li = document.createElement("li");
     li.className = "model-list-item";
+    li.dataset.modelId = model.id;
     li.textContent = model.label;
 
-    if (index === 0) li.classList.add("active");
+    if (model.id === currentModel) li.classList.add("active");
 
     li.addEventListener("click", () => {
       currentModel = model.id;
       document
         .querySelectorAll(".model-list-item")
-        .forEach(el => el.classList.remove("active"));
-      li.classList.add("active");
+        .forEach((el) => el.classList.toggle("active", el === li));
       console.log("Selected model:", currentModel);
     });
 
@@ -61,6 +60,8 @@ document.addEventListener("DOMContentLoaded", loadModelList);
    ========================================================== */
 
 async function callModel(userText) {
+  console.log("Sending request:", { model: currentModel, url: OPENWEBUI_URL });
+
   try {
     const response = await fetch(OPENWEBUI_URL, {
       method: "POST",
@@ -77,15 +78,21 @@ async function callModel(userText) {
       })
     });
 
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Backend responded with an error:", response.status, text);
+      throw new Error(`Backend responded with status ${response.status}`);
+    }
+
     const data = await response.json();
     console.log("Raw backend response:", data);
 
     if (!data?.choices?.[0]?.message?.content) {
-      return "No reply from backend — check JWT and model ID.";
+      console.error("Unexpected backend payload", data);
+      return "No reply from backend — check JWT, model ID, and URL.";
     }
 
     return data.choices[0].message.content;
-
   } catch (err) {
     console.error("Error talking to backend:", err);
     return "Backend error: " + err.message;
@@ -111,7 +118,7 @@ function appendMessage(role, text) {
   shell.scrollTop = shell.scrollHeight;
 }
 
-if (form) {
+if (form && input && shell) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -125,5 +132,5 @@ if (form) {
     appendMessage("assistant", reply);
   });
 } else {
-  console.warn("No #chat-form found on this page.");
+  console.warn("Chat UI not found on this page.");
 }

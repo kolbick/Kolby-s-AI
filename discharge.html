@@ -8,19 +8,18 @@
     .page-container {
       max-width: 900px;
       margin: 40px auto;
-      padding: 0 15px;
+      padding: 0 16px 40px;
     }
-    .summary-section {
-      padding: 16px;
-      margin-bottom: 16px;
-      background: #fffdf8;
-      border-radius: 8px;
-      border: 1px solid #d8cbb2;
+    .json-section {
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
     }
-    .summary-section h2 {
-      margin-top: 0;
-      font-size: 18px;
-    }
+    .json-section h2 { margin: 0 0 8px; font-size: 18px; }
+    pre { background: #f9f4e7; padding: 12px; border-radius: 10px; overflow: auto; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
   </style>
 </head>
 
@@ -31,39 +30,53 @@
 
     <div id="summaryBody"></div>
 
-    <a href="note.html" class="btn btn-primary">Back to Note Entry</a>
-    <a href="plan.html" class="btn btn-ghost">View Treatment Plan</a>
-    <button id="resetBtn" class="btn btn-ghost">Reset Records</button>
+    <div class="actions">
+      <a href="note.html" class="btn btn-primary">Back to Note Entry</a>
+      <a href="plan.html" class="btn btn-outline">View Treatment Plan</a>
+      <button id="resetBtn" class="btn btn-ghost">Reset Records</button>
+    </div>
   </div>
 
 <script>
-const patientRecord = JSON.parse(localStorage.getItem("patientRecord") || "{}");
-const dischargeRecord = JSON.parse(localStorage.getItem("dischargeRecord") || "{}");
+function loadRecord(key, fallback = {}) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch (e) {
+    console.warn(`Failed to parse ${key}`, e);
+    return fallback;
+  }
+}
+
+const patientRecord = loadRecord("patientRecord", {});
+const dischargeRecord = loadRecord("dischargeRecord", {});
+
+function renderSection(title, data) {
+  const pretty = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+  return `
+    <div class="json-section">
+      <h2>${title}</h2>
+      <pre>${pretty || "No data yet."}</pre>
+    </div>
+  `;
+}
 
 function renderSummary() {
   const container = document.getElementById("summaryBody");
 
-  const progress = patientRecord.progress || "Not documented yet.";
-  const aftercare = dischargeRecord.aftercare || "Aftercare recommendations not yet documented.";
+  if ((!patientRecord || Object.keys(patientRecord).length === 0) && (!dischargeRecord || Object.keys(dischargeRecord).length === 0)) {
+    container.innerHTML = renderSection("Discharge Record", "No data yet.");
+    return;
+  }
 
-  const html = `
-    <div class="summary-section">
-      <h2>Course of Treatment</h2>
-      <p>${progress}</p>
-    </div>
+  const sections = [
+    renderSection("Course of Treatment", patientRecord.progress || "Not documented yet."),
+    renderSection("Summary", patientRecord.summary || "Not documented yet."),
+    renderSection("Aftercare Plan", dischargeRecord.aftercare || "Aftercare recommendations not yet documented."),
+    renderSection("Full Patient Record", patientRecord || "No patient record stored."),
+    renderSection("Full Discharge Record", dischargeRecord || "No discharge record stored.")
+  ];
 
-    <div class="summary-section">
-      <h2>Aftercare Plan</h2>
-      <p>${aftercare}</p>
-    </div>
-
-    <div class="summary-section">
-      <h2>Prognosis</h2>
-      <p>The client will have a positive prognosis if they fully follow Aftercare Recommendations.</p>
-    </div>
-  `;
-
-  container.innerHTML = html;
+  container.innerHTML = sections.join("");
 }
 
 renderSummary();

@@ -2,57 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Note Entry – Changing Tides AI</title>
+  <title>Changing Tides note summarizer</title>
   <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
   <style>
     .note-container {
-      max-width: 700px;
+      max-width: 780px;
       margin: 40px auto;
-      padding: 20px;
+      padding: 20px 16px 32px;
     }
     textarea {
       width: 100%;
-      height: 200px;
+      height: 220px;
       padding: 12px;
       background: #fffdf8;
       border: 1px solid #d8cbb2;
       border-radius: 8px;
+      font: inherit;
     }
     .btn { margin-top: 10px; }
+    .summary-preview {
+      margin-top: 18px;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
   <div class="note-container">
-    <h1>Changing Tides – Clinical Note Summarizer</h1>
-    <p>Paste a client note below and click “Generate Plan Update”.</p>
+    <h1>Changing Tides note summarizer</h1>
+    <p>Paste a clinical note and generate structured plan and discharge updates.</p>
 
     <textarea id="noteInput" placeholder="Paste your clinical note here..."></textarea>
 
-    <button id="generateViewBtn" class="btn btn-primary">Generate Plan Update</button>
-    <button id="resetBtn" class="btn btn-ghost">Reset</button>
+    <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+      <button id="generateViewBtn" class="btn btn-primary">Generate Plan Update</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Reset Stored Records</button>
+      <a href="plan.html" class="btn btn-outline">View Treatment Plan</a>
+      <a href="discharge.html" class="btn btn-outline">View Discharge Summary</a>
+    </div>
+
+    <div class="summary-preview" id="previewBox" hidden></div>
   </div>
 
 <script>
 /* ==========================================================
-   LOCAL STORAGE OBJECTS
+   LOCAL STORAGE HELPERS
    ========================================================== */
-let patientRecord = JSON.parse(localStorage.getItem("patientRecord") || "{}");
-let dischargeRecord = JSON.parse(localStorage.getItem("dischargeRecord") || "{}");
+function loadRecord(key, fallback = {}) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch (e) {
+    console.warn(`Failed to parse ${key} from storage`, e);
+    return fallback;
+  }
+}
+
+function saveRecord(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+let patientRecord = loadRecord("patientRecord", {});
+let dischargeRecord = loadRecord("dischargeRecord", {});
 
 /* ==========================================================
    BACKEND CONFIG
    ========================================================== */
-
-const OPENWEBUI_URL = "http://localhost:3000/api/chat/completions";
-const OPENWEBUI_MODEL_ID = "changing-tides-ai-proposal-test";  
-const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
+const OPENWEBUI_URL = "PASTE_NGROK_URL_HERE/api/chat/completions";
+const OPENWEBUI_MODEL_ID = "changing-tides-ai-proposal-test";
+const OPENWEBUI_JWT = "PASTE_JWT_TOKEN_HERE";
 
 /* ==========================================================
    CALL SUMMARY MODEL
    ========================================================== */
-
 async function callOpenWebUISummary(noteText) {
+  console.log("Sending request:", { model: OPENWEBUI_MODEL_ID, url: OPENWEBUI_URL });
+
   try {
     const response = await fetch(OPENWEBUI_URL, {
       method: "POST",
@@ -63,25 +92,32 @@ async function callOpenWebUISummary(noteText) {
       body: JSON.stringify({
         model: OPENWEBUI_MODEL_ID,
         messages: [
-          { 
-            role: "system", 
-            content: "You are the Changing Tides clinical documentation AI. Extract structured JSON: problems, goals, interventions, progress, aftercare, summary." 
+          {
+            role: "system",
+            content: "You are the Changing Tides clinical documentation AI. Extract structured JSON: problems, goals, interventions, progress, aftercare, summary."
           },
           { role: "user", content: noteText }
         ]
       })
     });
 
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Backend responded with error", response.status, text);
+      throw new Error(`Backend responded with status ${response.status}`);
+    }
+
     const data = await response.json();
     const raw = data?.choices?.[0]?.message?.content || "";
 
     try {
       return JSON.parse(raw);
-    } catch {
+    } catch (parseError) {
+      console.warn("Could not parse JSON from model response; storing raw text instead.", parseError);
       return { summary: raw };
     }
-
   } catch (e) {
+    console.error("Summary request failed:", e);
     return { summary: "Backend error: " + e.message };
   }
 }
@@ -89,30 +125,45 @@ async function callOpenWebUISummary(noteText) {
 /* ==========================================================
    MERGING SUMMARY INTO RECORDS
    ========================================================== */
-
 function mergeSummary(summary) {
   if (!patientRecord.problems) patientRecord.problems = [];
 
-  if (summary.problems) {
-    patientRecord.problems.push(...summary.problems);
+  if (Array.isArray(summary.problems)) {
+    patientRecord.problems = summary.problems;
   }
-  if (summary.progress) patientRecord.progress = summary.progress;
-  if (summary.aftercare) dischargeRecord.aftercare = summary.aftercare;
 
-  localStorage.setItem("patientRecord", JSON.stringify(patientRecord));
-  localStorage.setItem("dischargeRecord", JSON.stringify(dischargeRecord));
+  if (summary.progress) {
+    patientRecord.progress = summary.progress;
+  }
+
+  if (summary.aftercare) {
+    dischargeRecord.aftercare = summary.aftercare;
+  }
+
+  if (summary.summary) {
+    patientRecord.summary = summary.summary;
+  }
+
+  saveRecord("patientRecord", patientRecord);
+  saveRecord("dischargeRecord", dischargeRecord);
+}
+
+function showPreview(summary) {
+  const box = document.getElementById("previewBox");
+  box.hidden = false;
+  box.textContent = JSON.stringify(summary, null, 2);
 }
 
 /* ==========================================================
    BUTTON ACTIONS
    ========================================================== */
-
 document.getElementById("generateViewBtn").onclick = async () => {
   const text = document.getElementById("noteInput").value.trim();
   if (!text) return;
 
   const summary = await callOpenWebUISummary(text);
   mergeSummary(summary);
+  showPreview(summary);
 
   window.location.href = "plan.html";
 };
@@ -120,6 +171,9 @@ document.getElementById("generateViewBtn").onclick = async () => {
 document.getElementById("resetBtn").onclick = () => {
   localStorage.removeItem("patientRecord");
   localStorage.removeItem("dischargeRecord");
+  patientRecord = {};
+  dischargeRecord = {};
+  document.getElementById("previewBox").hidden = true;
   alert("Records cleared.");
 };
 </script>
