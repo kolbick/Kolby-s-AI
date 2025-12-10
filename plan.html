@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Updated Treatment Plan</title>
+  <!-- Use your existing Kolby’s AI stylesheet for consistent styling -->
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+  <style>
+    /* Additional styles for the plan display page */
+    .plan-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+    .plan-panels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .plan-panel {
+      flex: 1;
+      min-width: 280px;
+      background: white;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .plan-panel h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    .plan-actions {
+      margin-top: 20px;
+    }
+    .plan-actions button {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="plan-container">
+    <h1>Updated Treatment Plan &amp; Discharge Summary</h1>
+    <p>This page shows the current treatment plan and discharge summary. Use the buttons below to return to note entry or to reset the record.</p>
+    <div class="plan-panels">
+      <div class="plan-panel">
+        <h2>Treatment Plan</h2>
+        <div id="treatmentPlan"></div>
+      </div>
+      <div class="plan-panel">
+        <h2>Discharge Summary</h2>
+        <div id="dischargeSummary"></div>
+      </div>
+    </div>
+    <div class="plan-actions">
+      <button id="backBtn" class="btn-outline">Back to Note Entry</button>
+      <button id="resetBtn" class="btn-ghost">Reset Patient Record</button>
+    </div>
+  </div>
+  <script>
+    const patientRecord = JSON.parse(localStorage.getItem('patientRecord') || 'null') || { problems: [], goals: [], interventions: [], progress: [], barriers: [] };
+    const dischargeRecord = JSON.parse(localStorage.getItem('dischargeRecord') || 'null') || { reason: '', course: [], response: [], aftercare: [] };
+    function render() {
+      const tpEl = document.getElementById('treatmentPlan');
+      const dsEl = document.getElementById('dischargeSummary');
+      let tpHtml = '';
+      if (patientRecord.problems.length) tpHtml += '<h3>Problems</h3><ul>' + patientRecord.problems.map(p => `<li>${p}</li>`).join('') + '</ul>';
+      if (patientRecord.goals.length) tpHtml += '<h3>Goals</h3><ul>' + patientRecord.goals.map(g => `<li>${g}</li>`).join('') + '</ul>';
+      if (patientRecord.interventions.length) tpHtml += '<h3>Interventions</h3><ul>' + patientRecord.interventions.map(i => `<li>${i}</li>`).join('') + '</ul>';
+      if (patientRecord.progress.length) tpHtml += '<h3>Progress</h3><ul>' + patientRecord.progress.map(pr => `<li>${pr}</li>`).join('') + '</ul>';
+      if (!tpHtml) tpHtml = '<p>No treatment plan yet. Add notes to generate one.</p>';
+      tpEl.innerHTML = tpHtml;
+      let dsHtml = '';
+      if (dischargeRecord.reason) dsHtml += '<h3>Reason for Admission</h3><p>' + dischargeRecord.reason + '</p>';
+      if (dischargeRecord.course.length) dsHtml += '<h3>Course of Treatment</h3><ul>' + dischargeRecord.course.map(item => `<li>${item}</li>`).join('') + '</ul>';
+      if (dischargeRecord.aftercare.length) dsHtml += '<h3>Aftercare Planning</h3><ul>' + dischargeRecord.aftercare.map(item => `<li>${item}</li>`).join('') + '</ul>';
+      if (!dsHtml) dsHtml = '<p>No discharge summary yet. Add notes to generate one.</p>';
+      dsEl.innerHTML = dsHtml;
+    }
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = 'note.html';
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Are you sure you want to reset the patient record?')) return;
+      localStorage.removeItem('patientRecord');
+      localStorage.removeItem('dischargeRecord');
+      window.location.href = 'note.html';
+    });
+    render();
+  </script>
+</body>
+</html>
