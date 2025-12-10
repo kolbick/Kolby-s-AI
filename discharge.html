@@ -3,105 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <title>Discharge Summary</title>
-  <!-- Use the shared stylesheet for consistent styling -->
   <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
   <style>
-    /* Additional styles for the discharge summary page */
     .page-container {
       max-width: 900px;
       margin: 40px auto;
       padding: 0 15px;
     }
-    .section {
-      margin-bottom: 24px;
-      background: white;
-      padding: 20px;
-      border-radius: var(--radius-md);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    .summary-section {
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #fffdf8;
+      border-radius: 8px;
+      border: 1px solid #d8cbb2;
     }
-    .section h2 {
+    .summary-section h2 {
       margin-top: 0;
-      margin-bottom: 12px;
-    }
-    .field {
-      margin-bottom: 8px;
-    }
-    .actions button {
-      margin-right: 8px;
+      font-size: 18px;
     }
   </style>
 </head>
+
 <body>
   <div class="page-container">
-    <h1>Discharge Summary</h1>
-    <p>This page displays the discharge summary generated from your notes. Fields left blank indicate no data has been provided.</p>
-    <div class="section">
-      <h2>Client Information</h2>
-      <div class="field"><strong>Client Name:</strong> <span id="clientName">________________</span></div>
-      <div class="field"><strong>Admission Date:</strong> <span id="admissionDate"></span></div>
-      <div class="field"><strong>Discharge Date:</strong> <span id="dischargeDate"></span></div>
-      <div class="field"><strong>Type of Discharge:</strong> <span id="dischargeType"></span></div>
-    </div>
-    <div class="section">
-      <h2>Summary</h2>
-      <div class="field"><strong>Reason for Admission:</strong><br /><span id="reason"></span></div>
-      <div class="field"><strong>Course of Treatment:</strong><br />
-        <ul id="courseList"></ul>
-      </div>
-      <div class="field"><strong>Aftercare Planning:</strong><br />
-        <ul id="aftercareList"></ul>
-      </div>
-    </div>
-    <div class="section actions">
-      <button class="btn-outline" id="viewPlan">View Treatment Plan</button>
-      <button class="btn-outline" id="backNote">Back to Note Entry</button>
-      <button class="btn-ghost" id="resetRecord">Reset Record</button>
-    </div>
+    <h1>Discharge / Transition Summary</h1>
+    <p>This summary is built from the information extracted from clinical notes and aftercare recommendations.</p>
+
+    <div id="summaryBody"></div>
+
+    <a href="note.html" class="btn btn-primary">Back to Note Entry</a>
+    <a href="plan.html" class="btn btn-ghost">View Treatment Plan</a>
+    <button id="resetBtn" class="btn btn-ghost">Reset Records</button>
   </div>
-  <script>
-    // Fetch the discharge record
-    const dischargeRecord = JSON.parse(localStorage.getItem('dischargeRecord') || 'null') || { reason: '', course: [], aftercare: [] };
-    // Populate summary fields
-    document.getElementById('reason').textContent = dischargeRecord.reason || 'No discharge summary yet. Add notes on the note entry page to generate one.';
-    const courseList = document.getElementById('courseList');
-    if (dischargeRecord.course && dischargeRecord.course.length) {
-      dischargeRecord.course.forEach((item) => {
-        const li = document.createElement('li');
-        li.textContent = item;
-        courseList.appendChild(li);
-      });
-    } else {
-      const li = document.createElement('li');
-      li.textContent = 'No course of treatment recorded.';
-      courseList.appendChild(li);
-    }
-    const aftercareList = document.getElementById('aftercareList');
-    if (dischargeRecord.aftercare && dischargeRecord.aftercare.length) {
-      dischargeRecord.aftercare.forEach((item) => {
-        const li = document.createElement('li');
-        li.textContent = item;
-        aftercareList.appendChild(li);
-      });
-    } else {
-      const li = document.createElement('li');
-      li.textContent = 'No aftercare planning recorded.';
-      aftercareList.appendChild(li);
-    }
-    // For demonstration, fill admission and discharge dates with today's date
-    const now = new Date();
-    document.getElementById('admissionDate').textContent = now.toLocaleDateString();
-    document.getElementById('dischargeDate').textContent = now.toLocaleDateString();
-    document.getElementById('dischargeType').textContent = '';
-    // Action buttons
-    document.getElementById('viewPlan').onclick = () => { window.location.href = 'plan.html'; };
-    document.getElementById('backNote').onclick = () => { window.location.href = 'note.html'; };
-    document.getElementById('resetRecord').onclick = () => {
-      if (confirm('Are you sure you want to reset the patient record?')) {
-        localStorage.removeItem('patientRecord');
-        localStorage.removeItem('dischargeRecord');
-        window.location.href = 'note.html';
-      }
-    };
-  </script>
+
+<script>
+const patientRecord = JSON.parse(localStorage.getItem("patientRecord") || "{}");
+const dischargeRecord = JSON.parse(localStorage.getItem("dischargeRecord") || "{}");
+
+function renderSummary() {
+  const container = document.getElementById("summaryBody");
+
+  const progress = patientRecord.progress || "Not documented yet.";
+  const aftercare = dischargeRecord.aftercare || "Aftercare recommendations not yet documented.";
+
+  const html = `
+    <div class="summary-section">
+      <h2>Course of Treatment</h2>
+      <p>${progress}</p>
+    </div>
+
+    <div class="summary-section">
+      <h2>Aftercare Plan</h2>
+      <p>${aftercare}</p>
+    </div>
+
+    <div class="summary-section">
+      <h2>Prognosis</h2>
+      <p>The client will have a positive prognosis if they fully follow Aftercare Recommendations.</p>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+renderSummary();
+
+document.getElementById("resetBtn").onclick = () => {
+  localStorage.removeItem("patientRecord");
+  localStorage.removeItem("dischargeRecord");
+  location.reload();
+};
+</script>
 </body>
 </html>
