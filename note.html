@@ -51,7 +51,7 @@
       `OPENWEBUI_API_KEY` constant below.
     */
     const OPENWEBUI_API_KEY = '';
-    const OPENWEBUI_URL = 'http://host.docker.interanl:11434';
+    const OPENWEBUI_URL = 'http://localhost:3000/api/chat/completions';
 
     // Load existing records or initialise empty ones
     let patientRecord = JSON.parse(localStorage.getItem('patientRecord') || 'null') || {
