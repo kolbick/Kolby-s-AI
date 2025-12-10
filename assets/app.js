@@ -1,12 +1,15 @@
 /* ==========================================================
-   Kolby's AI — Unified Script for Chat + Model Selection
+   Kolby's AI — Local OpenWebUI Model Integration
    ========================================================== */
 
 /* ---------- CONFIG ---------- */
+
 const OPENWEBUI_URL = "http://localhost:3000/api/chat/completions";
-const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
+// PASTE YOUR JWT OR API KEY HERE:
+const OPENWEBUI_JWT = "PASTE_YOUR_JWT_HERE";
 
 /* ---------- YOUR MODELS ---------- */
+
 const MODELS = [
   { id: "kolbys-ai-v2",  label: "Kolby's AI (Alpha)" },
   { id: "kolbys-ai-v21", label: "Kolby's AI (Beta 1.0)" },
@@ -19,10 +22,13 @@ let currentModel = MODELS[0].id;
 /* ==========================================================
    BUILD SIDEBAR MODEL LIST
    ========================================================== */
+
 function loadModelList() {
+  console.log("app.js loaded, building model list…");
+
   const list = document.getElementById("model-list");
   if (!list) {
-    console.error("Model list not found (#model-list).");
+    console.error("Could not find #model-list in the DOM.");
     return;
   }
 
@@ -37,9 +43,11 @@ function loadModelList() {
 
     li.addEventListener("click", () => {
       currentModel = model.id;
-
-      document.querySelectorAll(".model-list-item").forEach(e => e.classList.remove("active"));
+      document
+        .querySelectorAll(".model-list-item")
+        .forEach(el => el.classList.remove("active"));
       li.classList.add("active");
+      console.log("Selected model:", currentModel);
     });
 
     list.appendChild(li);
@@ -51,6 +59,7 @@ document.addEventListener("DOMContentLoaded", loadModelList);
 /* ==========================================================
    API CALL TO OPENWEBUI
    ========================================================== */
+
 async function callModel(userText) {
   try {
     const response = await fetch(OPENWEBUI_URL, {
@@ -69,14 +78,16 @@ async function callModel(userText) {
     });
 
     const data = await response.json();
+    console.log("Raw backend response:", data);
 
     if (!data?.choices?.[0]?.message?.content) {
-      return "No reply from backend — check model ID or JWT.";
+      return "No reply from backend — check JWT and model ID.";
     }
 
     return data.choices[0].message.content;
 
   } catch (err) {
+    console.error("Error talking to backend:", err);
     return "Backend error: " + err.message;
   }
 }
@@ -84,10 +95,11 @@ async function callModel(userText) {
 /* ==========================================================
    CHAT UI HANDLERS
    ========================================================== */
-const form   = document.getElementById("chat-form");
-const input  = document.getElementById("chat-input");
-const empty  = document.getElementById("chat-empty");
-const shell  = document.querySelector(".chat-shell");
+
+const form  = document.getElementById("chat-form");
+const input = document.getElementById("chat-input");
+const empty = document.getElementById("chat-empty");
+const shell = document.querySelector(".chat-shell");
 
 function appendMessage(role, text) {
   if (empty) empty.style.display = "none";
@@ -112,4 +124,6 @@ if (form) {
     const reply = await callModel(text);
     appendMessage("assistant", reply);
   });
+} else {
+  console.warn("No #chat-form found on this page.");
 }
