@@ -1,5 +1,6 @@
 /* ==========================================================
-   Kolby's AI — Local OpenWebUI Model Integration
+   Kolby's AI — Connected Frontend
+   Uses existing OpenWebUI endpoint & JWT defined in repo
    ========================================================== */
 
 /* ---------- CONFIG ---------- */
@@ -18,10 +19,16 @@ const MODELS = [
 ];
 
 let currentModel = MODELS[0].id;
+let sending = false;
 
 /* ==========================================================
-   BUILD SIDEBAR MODEL LIST
+   UTILS
    ========================================================== */
+
+function setCurrentModelLabel(label) {
+  const el = document.getElementById("current-model-label");
+  if (el) el.textContent = label;
+}
 
 function applyWatermark(modelId) {
   const watermark = document.querySelector(".watermark");
@@ -32,22 +39,52 @@ function applyWatermark(modelId) {
   watermark.classList.toggle("watermark--kolby", !isMountains);
 }
 
+function setConnectionStatus(text) {
+  const badge = document.getElementById("connection-status");
+  if (badge) badge.textContent = text;
+}
+
+function buildContent(text) {
+  const container = document.createElement("div");
+  container.className = "message__content";
+  fillContent(container, text);
+  return container;
+}
+
+function fillContent(container, text) {
+  container.innerHTML = "";
+  text.split(/\n+/).forEach((line) => {
+    const p = document.createElement("p");
+    p.textContent = line;
+    container.appendChild(p);
+  });
+}
+
+function toggleEmptyState(show) {
+  const empty = document.getElementById("chat-empty");
+  if (!empty) return;
+  empty.style.display = show ? "flex" : "none";
+}
+
+/* ==========================================================
+   BUILD SIDEBAR MODEL LIST
+   ========================================================== */
+
 function activateModel(li, model) {
   currentModel = model.id;
   document
     .querySelectorAll(".model-list-item")
     .forEach((el) => el.classList.toggle("active", el === li));
   applyWatermark(currentModel);
+  setCurrentModelLabel(model.label);
   document.body.classList.remove("sidebar-open");
+  setConnectionStatus("Brain online");
   console.log("Selected model:", currentModel);
 }
 
 function loadModelList() {
   const list = document.getElementById("model-list");
-  if (!list) {
-    console.error("Could not find #model-list in the DOM.");
-    return;
-  }
+  if (!list) return;
 
   list.innerHTML = "";
 
@@ -69,6 +106,8 @@ function loadModelList() {
 
     list.appendChild(li);
   });
+
+  setCurrentModelLabel(MODELS.find((m) => m.id === currentModel)?.label || MODELS[0].label);
 }
 
 /* ==========================================================
@@ -119,38 +158,116 @@ async function callModel(userText) {
    CHAT UI HANDLERS
    ========================================================== */
 
+function appendMessage(role, text, { pending = false } = {}) {
+  const thread = document.getElementById("chat-thread");
+  if (!thread) return null;
+
+  toggleEmptyState(false);
+
+  const msg = document.createElement("article");
+  msg.className = `message message--${role}${pending ? " message--pending" : ""}`;
+
+  const meta = document.createElement("div");
+  meta.className = "message__meta";
+  const rolePill = document.createElement("span");
+  rolePill.className = "role-pill";
+  rolePill.textContent = role === "user" ? "You" : "Kolby’s AI";
+  meta.appendChild(rolePill);
+
+  const timestamp = document.createElement("span");
+  timestamp.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  meta.appendChild(timestamp);
+
+  msg.appendChild(meta);
+  msg.appendChild(buildContent(text));
+
+  thread.appendChild(msg);
+  thread.scrollTop = thread.scrollHeight;
+
+  return msg;
+}
+
+function setSending(state) {
+  sending = state;
+  const sendBtn = document.getElementById("send-btn");
+  if (sendBtn) {
+    sendBtn.disabled = state;
+    sendBtn.innerHTML = state ? '<i class="ri-loader-4-line" aria-hidden="true"></i> Sending' : '<i class="ri-send-plane-2-line" aria-hidden="true"></i> Send';
+  }
+  setConnectionStatus(state ? "Talking to backend…" : "Brain online");
+}
+
+function clearChat() {
+  const thread = document.getElementById("chat-thread");
+  if (thread) thread.innerHTML = "";
+  toggleEmptyState(true);
+}
+
+function handlePromptButtons() {
+  document.querySelectorAll(".prompt-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const textarea = document.getElementById("chat-input-textarea");
+      if (!textarea) return;
+      textarea.value = btn.dataset.prompt || "";
+      textarea.focus();
+    });
+  });
+}
+
 function wireChatUI() {
   const form = document.getElementById("chat-form");
-  const input = document.getElementById("chat-input");
-  const empty = document.getElementById("chat-empty");
-  const shell = document.querySelector(".chat-shell");
+  const textarea = document.getElementById("chat-input-textarea");
 
-  function appendMessage(role, text) {
-    if (empty) empty.style.display = "none";
-
-    const msg = document.createElement("div");
-    msg.className = `chat-msg ${role}`;
-    msg.innerHTML = `<p>${text}</p>`;
-    shell.appendChild(msg);
-    shell.scrollTop = shell.scrollHeight;
-  }
-
-  if (form && input && shell) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const text = input.value.trim();
-      if (!text) return;
-
-      appendMessage("user", text);
-      input.value = "";
-
-      const reply = await callModel(text);
-      appendMessage("assistant", reply);
-    });
-  } else {
+  if (!form || !textarea) {
     console.warn("Chat UI not found on this page.");
+    return;
   }
+
+  const sendFlow = async (text) => {
+    if (!text || sending) return;
+    appendMessage("user", text);
+    textarea.value = "";
+    setSending(true);
+
+    const pending = appendMessage("assistant", "Thinking...", { pending: true });
+    const reply = await callModel(text);
+
+    if (pending) {
+      pending.classList.remove("message--pending");
+      const content = pending.querySelector(".message__content");
+      if (content) {
+        fillContent(content, reply);
+      } else {
+        pending.appendChild(buildContent(reply));
+      }
+    } else {
+      appendMessage("assistant", reply);
+    }
+
+    setSending(false);
+  };
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = textarea.value.trim();
+    sendFlow(text);
+  });
+
+  textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      const text = textarea.value.trim();
+      sendFlow(text);
+    }
+  });
+
+  const newChatButtons = [document.getElementById("new-chat-btn"), document.getElementById("secondary-new-chat")];
+  newChatButtons.forEach((btn) => {
+    if (btn) btn.addEventListener("click", () => {
+      clearChat();
+      textarea.focus();
+    });
+  });
 }
 
 /* ==========================================================
@@ -177,4 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
   applyWatermark(currentModel);
   wireChatUI();
   wireSidebarToggle();
+  handlePromptButtons();
+  toggleEmptyState(true);
 });
