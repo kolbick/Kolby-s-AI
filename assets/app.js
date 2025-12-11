@@ -4,8 +4,8 @@
 
 /* ---------- CONFIG ---------- */
 
-const OPENWEBUI_URL = "https://YOUR_NGROK_URL_HERE/api/chat/completions";
-const OPENWEBUI_JWT = "PASTE_YOUR_JWT_TOKEN_HERE";
+const OPENWEBUI_URL = "https://kaitlin-unfertilisable-snottily.ngrok-free.dev/api/chat/completions";
+const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
 
 /* ---------- YOUR MODELS ---------- */
 
