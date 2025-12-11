@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>Discharge Summary</title>
-  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="assets/img/kolbysailogo2.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="assets/img/kolbysailogo2.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v2" />
   <style>
     .page-container {
       max-width: 900px;
@@ -19,7 +23,6 @@
     }
     .json-section h2 { margin: 0 0 8px; font-size: 18px; }
     pre { background: #f9f4e7; padding: 12px; border-radius: 10px; overflow: auto; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
   </style>
 </head>
 
@@ -33,6 +36,7 @@
     <div class="actions">
       <a href="note.html" class="btn btn-primary">Back to Note Entry</a>
       <a href="plan.html" class="btn btn-outline">View Treatment Plan</a>
+      <a href="index.html" class="btn btn-outline">Back to Chat</a>
       <button id="resetBtn" class="btn btn-ghost">Reset Records</button>
     </div>
   </div>

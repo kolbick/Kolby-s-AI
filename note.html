@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>Changing Tides note summarizer</title>
-  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="assets/img/kolbysailogo2.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="assets/img/kolbysailogo2.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v2" />
   <style>
     .note-container {
       max-width: 780px;
@@ -29,6 +33,7 @@
       white-space: pre-wrap;
       font-size: 14px;
     }
+    .status-row { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
   </style>
 </head>
 
@@ -44,6 +49,15 @@
       <button id="resetBtn" class="btn btn-ghost" type="button">Reset Stored Records</button>
       <a href="plan.html" class="btn btn-outline">View Treatment Plan</a>
       <a href="discharge.html" class="btn btn-outline">View Discharge Summary</a>
+    </div>
+
+    <div class="status-row">
+      <div id="statusMessage" class="status-message" hidden></div>
+      <div id="postActions" class="actions" hidden>
+        <a href="plan.html" class="btn btn-primary">View Treatment Plan</a>
+        <a href="discharge.html" class="btn btn-outline">View Discharge Summary</a>
+        <a href="index.html" class="btn btn-ghost">Back to Chat</a>
+      </div>
     </div>
 
     <div class="summary-preview" id="previewBox" hidden></div>
@@ -72,9 +86,9 @@ let dischargeRecord = loadRecord("dischargeRecord", {});
 /* ==========================================================
    BACKEND CONFIG
    ========================================================== */
-const OPENWEBUI_URL = "https://kaitlin-unfertilisable-snottily.ngrok-free.dev/api/chat/completions";
+const OPENWEBUI_URL = "https://YOUR_NGROK_URL_HERE/api/chat/completions";
 const OPENWEBUI_MODEL_ID = "changing-tides-ai-proposal-test";
-const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
+const OPENWEBUI_JWT = "PASTE_YOUR_JWT_TOKEN_HERE";
 
 /* ==========================================================
    CALL SUMMARY MODEL
@@ -82,43 +96,42 @@ const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIy
 async function callOpenWebUISummary(noteText) {
   console.log("Sending request:", { model: OPENWEBUI_MODEL_ID, url: OPENWEBUI_URL });
 
+  const response = await fetch(OPENWEBUI_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENWEBUI_JWT}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: OPENWEBUI_MODEL_ID,
+      messages: [
+        {
+          role: "system",
+          content: "You are the Changing Tides clinical documentation AI. Extract structured JSON: problems, goals, interventions, progress, aftercare, summary."
+        },
+        { role: "user", content: noteText }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("Backend responded with error", response.status, text);
+    throw new Error(`Backend responded with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  const raw = data?.choices?.[0]?.message?.content || "";
+
+  if (!raw) {
+    throw new Error("No response from backend.");
+  }
+
   try {
-    const response = await fetch(OPENWEBUI_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENWEBUI_JWT}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: OPENWEBUI_MODEL_ID,
-        messages: [
-          {
-            role: "system",
-            content: "You are the Changing Tides clinical documentation AI. Extract structured JSON: problems, goals, interventions, progress, aftercare, summary."
-          },
-          { role: "user", content: noteText }
-        ]
-      })
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Backend responded with error", response.status, text);
-      throw new Error(`Backend responded with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    const raw = data?.choices?.[0]?.message?.content || "";
-
-    try {
-      return JSON.parse(raw);
-    } catch (parseError) {
-      console.warn("Could not parse JSON from model response; storing raw text instead.", parseError);
-      return { summary: raw };
-    }
-  } catch (e) {
-    console.error("Summary request failed:", e);
-    return { summary: "Backend error: " + e.message };
+    return JSON.parse(raw);
+  } catch (parseError) {
+    console.warn("Could not parse JSON from model response; storing raw text instead.", parseError);
+    return { summary: raw };
   }
 }
 
@@ -154,6 +167,24 @@ function showPreview(summary) {
   box.textContent = JSON.stringify(summary, null, 2);
 }
 
+function setStatus(type, message) {
+  const box = document.getElementById("statusMessage");
+  if (!box) return;
+  box.hidden = false;
+  box.className = `status-message status-${type}`;
+  box.textContent = message;
+}
+
+function resetStatus() {
+  const box = document.getElementById("statusMessage");
+  if (box) {
+    box.hidden = true;
+    box.textContent = "";
+  }
+  const actions = document.getElementById("postActions");
+  if (actions) actions.hidden = true;
+}
+
 /* ==========================================================
    BUTTON ACTIONS
    ========================================================== */
@@ -161,11 +192,31 @@ document.getElementById("generateViewBtn").onclick = async () => {
   const text = document.getElementById("noteInput").value.trim();
   if (!text) return;
 
-  const summary = await callOpenWebUISummary(text);
-  mergeSummary(summary);
-  showPreview(summary);
+  const btn = document.getElementById("generateViewBtn");
+  resetStatus();
+  btn.disabled = true;
+  btn.textContent = "Updating...";
+  setStatus("loading", "Updating treatment plan and discharge summary...");
 
-  window.location.href = "plan.html";
+  try {
+    const summary = await callOpenWebUISummary(text);
+    mergeSummary(summary);
+    showPreview(summary);
+
+    setStatus("success", "Plan and discharge summary updated successfully.");
+    const actions = document.getElementById("postActions");
+    if (actions) actions.hidden = false;
+
+    setTimeout(() => {
+      window.location.href = "plan.html";
+    }, 1500);
+  } catch (e) {
+    console.error("Summary request failed:", e);
+    setStatus("error", "Error updating plan. Please check connection and try again.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Generate Plan Update";
+  }
 };
 
 document.getElementById("resetBtn").onclick = () => {
@@ -174,6 +225,7 @@ document.getElementById("resetBtn").onclick = () => {
   patientRecord = {};
   dischargeRecord = {};
   document.getElementById("previewBox").hidden = true;
+  resetStatus();
   alert("Records cleared.");
 };
 </script>
