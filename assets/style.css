@@ -74,8 +74,8 @@ body.sidebar-open { overflow: hidden; }
 .quick-links .btn-outline { padding: 6px 12px; }
 
 .watermark { position: absolute; inset: 70px 40px 70px 40px; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: 58%; opacity: 0.16; transition: background-image 0.2s ease, opacity 0.2s ease; }
-.watermark--kolby { background-image: url("assets/img/kolbysailogo2.png"); }
-.watermark--mountains { background-image: url("assets/img/mountainstosealogo.png"); }
+.watermark--kolby { background-image: url("./img/kolbysailogo2.png"); }
+.watermark--mountains { background-image: url("./img/mountainstosealogo.png"); }
 
 /* Chat shell */
 .chat-shell { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
