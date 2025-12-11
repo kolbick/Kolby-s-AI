@@ -4,16 +4,17 @@
 
 /* ---------- CONFIG ---------- */
 
-const OPENWEBUI_URL = "https://kaitlin-unfertilisable-snottily.ngrok-free.dev/api/chat/completions";
-const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
+const OPENWEBUI_URL = "https://YOUR_NGROK_URL_HERE/api/chat/completions";
+const OPENWEBUI_JWT = "PASTE_YOUR_JWT_TOKEN_HERE";
 
 /* ---------- YOUR MODELS ---------- */
 
 const MODELS = [
-  { id: "kolbys-ai-v2",  label: "Kolby's AI (Alpha)" },
+  { id: "kolbys-ai-v2", label: "Kolby's AI (Alpha)" },
   { id: "kolbys-ai-v21", label: "Kolby's AI (Beta 1.0)" },
   { id: "kolbys-ai-v22", label: "Kolby's AI (Beta 1.1)" },
-  { id: "changing-tides-ai-proposal-test", label: "Changing Tides AI Proposal (Test)" }
+  { id: "changing-tides-ai-proposal-test", label: "Changing Tides AI Proposal (Test)" },
+  { id: "mountains-to-sea-therapy", label: "Mountains to Sea Therapy" }
 ];
 
 let currentModel = MODELS[0].id;
@@ -22,9 +23,26 @@ let currentModel = MODELS[0].id;
    BUILD SIDEBAR MODEL LIST
    ========================================================== */
 
-function loadModelList() {
-  console.log("app.js loaded, building model list…");
+function applyWatermark(modelId) {
+  const watermark = document.querySelector(".watermark");
+  if (!watermark) return;
 
+  const isMountains = modelId === "mountains-to-sea-therapy";
+  watermark.classList.toggle("watermark--mountains", isMountains);
+  watermark.classList.toggle("watermark--kolby", !isMountains);
+}
+
+function activateModel(li, model) {
+  currentModel = model.id;
+  document
+    .querySelectorAll(".model-list-item")
+    .forEach((el) => el.classList.toggle("active", el === li));
+  applyWatermark(currentModel);
+  document.body.classList.remove("sidebar-open");
+  console.log("Selected model:", currentModel);
+}
+
+function loadModelList() {
   const list = document.getElementById("model-list");
   if (!list) {
     console.error("Could not find #model-list in the DOM.");
@@ -37,23 +55,21 @@ function loadModelList() {
     const li = document.createElement("li");
     li.className = "model-list-item";
     li.dataset.modelId = model.id;
+    li.tabIndex = 0;
     li.textContent = model.label;
 
     if (model.id === currentModel) li.classList.add("active");
 
-    li.addEventListener("click", () => {
-      currentModel = model.id;
-      document
-        .querySelectorAll(".model-list-item")
-        .forEach((el) => el.classList.toggle("active", el === li));
-      console.log("Selected model:", currentModel);
+    const handler = () => activateModel(li, model);
+    li.addEventListener("click", handler);
+    li.addEventListener("touchend", handler, { passive: true });
+    li.addEventListener("keyup", (evt) => {
+      if (evt.key === "Enter" || evt.key === " ") handler();
     });
 
     list.appendChild(li);
   });
 }
-
-document.addEventListener("DOMContentLoaded", loadModelList);
 
 /* ==========================================================
    API CALL TO OPENWEBUI
@@ -103,34 +119,62 @@ async function callModel(userText) {
    CHAT UI HANDLERS
    ========================================================== */
 
-const form  = document.getElementById("chat-form");
-const input = document.getElementById("chat-input");
-const empty = document.getElementById("chat-empty");
-const shell = document.querySelector(".chat-shell");
+function wireChatUI() {
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
+  const empty = document.getElementById("chat-empty");
+  const shell = document.querySelector(".chat-shell");
 
-function appendMessage(role, text) {
-  if (empty) empty.style.display = "none";
+  function appendMessage(role, text) {
+    if (empty) empty.style.display = "none";
 
-  const msg = document.createElement("div");
-  msg.className = `chat-msg ${role}`;
-  msg.innerHTML = `<p>${text}</p>`;
-  shell.appendChild(msg);
-  shell.scrollTop = shell.scrollHeight;
+    const msg = document.createElement("div");
+    msg.className = `chat-msg ${role}`;
+    msg.innerHTML = `<p>${text}</p>`;
+    shell.appendChild(msg);
+    shell.scrollTop = shell.scrollHeight;
+  }
+
+  if (form && input && shell) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage("user", text);
+      input.value = "";
+
+      const reply = await callModel(text);
+      appendMessage("assistant", reply);
+    });
+  } else {
+    console.warn("Chat UI not found on this page.");
+  }
 }
 
-if (form && input && shell) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+/* ==========================================================
+   SIDEBAR TOGGLING FOR MOBILE
+   ========================================================== */
 
-    const text = input.value.trim();
-    if (!text) return;
+function wireSidebarToggle() {
+  const toggle = document.getElementById("sidebar-toggle");
+  const overlay = document.getElementById("sidebar-overlay");
 
-    appendMessage("user", text);
-    input.value = "";
+  const closeSidebar = () => document.body.classList.remove("sidebar-open");
+  const toggleSidebar = () => document.body.classList.toggle("sidebar-open");
 
-    const reply = await callModel(text);
-    appendMessage("assistant", reply);
-  });
-} else {
-  console.warn("Chat UI not found on this page.");
+  if (toggle) toggle.addEventListener("click", toggleSidebar);
+  if (overlay) overlay.addEventListener("click", closeSidebar);
 }
+
+/* ==========================================================
+   INIT
+   ========================================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadModelList();
+  applyWatermark(currentModel);
+  wireChatUI();
+  wireSidebarToggle();
+});

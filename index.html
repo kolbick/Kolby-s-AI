@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <title>Kolby’s AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Use the shared stylesheet for a consistent look across all pages -->
-  <link rel="stylesheet" href="assets/style.css?v=kolby-v1" />
+  <link rel="icon" href="assets/img/kolbysailogo2.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="assets/img/kolbysailogo2.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v2" />
 </head>
 <body>
   <div class="app">
@@ -38,13 +40,24 @@
         <ul class="model-list" id="model-list"><!-- Filled by JS --></ul>
       </div>
     </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <!-- Main area -->
     <main class="main">
       <header class="topbar">
-        <h1 class="topbar-title">Kolby’s AI</h1>
-        <button class="btn-outline" id="sign-in-btn">Sign In</button>
+        <div class="topbar-left">
+          <button class="btn-icon" id="sidebar-toggle" aria-label="Toggle model menu">☰</button>
+          <h1 class="topbar-title">Kolby’s AI</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="quick-links">
+            <a href="note.html" class="btn-outline">Clinical Note → Plan</a>
+            <a href="plan.html" class="btn-outline">View Treatment Plan</a>
+            <a href="discharge.html" class="btn-outline">View Discharge Summary</a>
+          </div>
+          <button class="btn-outline" id="sign-in-btn">Sign In</button>
+        </div>
       </header>
-      <div class="watermark"></div>
+      <div class="watermark watermark--kolby"></div>
       <!-- Chat area -->
       <section class="chat-shell">
         <div class="chat-empty-message" id="chat-empty">

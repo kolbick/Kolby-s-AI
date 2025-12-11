@@ -1,0 +1,20 @@
+{
+  "name": "Kolby's AI",
+  "short_name": "Kolby's AI",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f8f1df",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/img/kolbysailogo2.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/img/kolbysailogo2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
