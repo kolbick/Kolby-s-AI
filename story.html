@@ -2,67 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>The Story Behind Kolby’s AI</title>
+  <title>Kolby’s AI | Story</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="assets/img/kolbysailogo2.png" sizes="32x32" />
   <link rel="apple-touch-icon" href="assets/img/kolbysailogo2.png" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
-  <link rel="stylesheet" href="assets/style.css?v=kolby-v3" />
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v4" />
 </head>
 <body>
-  <main class="page-container">
-    <div class="story-hero">
+  <main class="main" style="max-width: 960px; margin: 0 auto;">
+    <header class="header">
       <div>
-        <p class="eyebrow">Kolby’s AI</p>
-        <h1>The Story Behind Kolby’s AI</h1>
-        <p>What began as a scrappy demo is now a connected cockpit. Kolby spent months coding late nights, wiring clinical workflows, and shipping proposals to clients. The backend is live, and the frontend finally tells the story.</p>
-        <div class="hero__tags" style="margin-top: 14px;">
-          <span class="pill">Purple + gold</span>
-          <span class="pill">Backend connected</span>
-          <span class="pill">Therapist-first</span>
-        </div>
+        <p class="eyebrow">Story / About</p>
+        <h1>Why Kolby built this cockpit</h1>
+        <p class="muted">A deliberate rebuild inspired by OpenWebUI, wired to the same backend you chat with on the main page.</p>
       </div>
-      <div>
-        <img src="assets/img/kolbysailogo2.png" alt="Kolby's AI pirate logo" />
-      </div>
-    </div>
+      <a class="primary-btn" href="index.html">
+        <i class="ri-send-plane-2-line" aria-hidden="true"></i>
+        Back to chat
+      </a>
+    </header>
 
-    <section class="story-section">
-      <h2>Why it started</h2>
-      <p>Kolby wanted an assistant that spoke the language of therapists: fast SOAP notes, discharge summaries, and treatment plans that don’t feel like chores. The first prototype was a bare-bones static site. It worked for demos but never reflected the polish or ambition behind the project.</p>
-    </section>
-
-    <section class="story-section">
-      <h2>Now a real, connected frontend</h2>
-      <div class="story-grid">
-        <div>
-          <h3>Backend is online</h3>
-          <p>The UI calls the configured OpenWebUI endpoint with the JWT stored in the repo’s configuration. Every chat you see in the cockpit is powered by that live backend.</p>
+    <section class="panel">
+      <div class="story">
+        <div class="story__block">
+          <h3>Built with intent</h3>
+          <p>Kolby spent months experimenting with flows that therapists and founders actually use. The new UI trims the clutter and keeps focus on chat, models, and the Changing Tides proposal generator.</p>
         </div>
-        <div>
-          <h3>Designed for clinicians</h3>
-          <p>Navigation highlights clinical actions—new chat, models, notes, plans, and discharge summaries—so workflows feel cohesive instead of patched together.</p>
+        <div class="story__block">
+          <h3>Backend stays the same</h3>
+          <p>Every request still hits the configured OpenWebUI URL with the JWT stored in this repo. No new secrets, no dummy endpoints—just a cleaner coat of paint on the same live brain.</p>
         </div>
-        <div>
-          <h3>Mobile matters</h3>
-          <p>The refreshed layout keeps the chat input usable above the keyboard, adds a reliable hamburger menu, and keeps buttons comfortably tappable down to 320px.</p>
+        <div class="story__block">
+          <h3>Mobile friendly</h3>
+          <p>The slide-in drawer, sticky composer, and larger hit targets fix the tap blockers that haunted the old layout. It’s ready for iPhone thumbs.</p>
         </div>
-      </div>
-    </section>
-
-    <section class="story-section">
-      <h2>The vision</h2>
-      <p>Kolby’s AI is built to slot into therapist workflows: capture a note, summarize progress, and hand off a treatment plan without breaking focus. The pirate logo stays playful, but the mission is serious—help clinicians reclaim their time while keeping clinical quality front and center.</p>
-      <div class="actions" style="margin-top: 18px;">
-        <a class="btn btn-primary" href="index.html">
-          <i class="ri-send-plane-2-line" aria-hidden="true"></i>
-          Back to the cockpit
-        </a>
-        <a class="btn btn-outline" href="note.html">Capture a Clinical Note</a>
       </div>
     </section>
   </main>
-  <script src="assets/app.js"></script>
 </body>
 </html>
