@@ -1,5 +1,5 @@
 /* ==========================================================
-   Kolby's AI — modern cockpit
+   Kolby's AI — light cockpit
    Keeps existing backend URL/JWT + model IDs intact
    ========================================================== */
 
@@ -7,119 +7,210 @@ const OPENWEBUI_URL = "https://kaitlin-unfertilisable-snottily.ngrok-free.dev/ap
 const OPENWEBUI_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM5NWUyNDIyLTk2ZTMtNDlmNi1iYjk2LTU3MTcyMWRjN2NhMCIsImV4cCI6MTc2NzQ3OTYxOSwianRpIjoiYWRhN2RiNTctNGZmZS00YjIwLWIxYTMtZGJkYjBkNzI0OGIxIn0.9f-SW4DckWTAu5cR9yY5wbW8Y3Jpg86xE7WPA4o2h28";
 
 const MODELS = [
-  { id: "kolbys-ai-v2", label: "Kolby's AI (Alpha)", description: "Default assistant tuned for general requests." },
-  { id: "kolbys-ai-v21", label: "Kolby's AI (Beta 1.0)", description: "Sharper reasoning with a balanced tone." },
-  { id: "kolbys-ai-v22", label: "Kolby's AI (Beta 1.1)", description: "Experimental refinements for fast answers." },
-  { id: "changing-tides-ai-proposal-test", label: "Changing Tides Proposal", description: "Purpose-built to draft program proposals." },
-  { id: "mountains-to-sea-therapy", label: "Mountains to Sea Therapy", description: "Legacy therapy brain for context-heavy asks." }
+  {
+    id: "kolbys-ai-v2",
+    label: "Kolby's AI (Alpha)",
+    description: "Default assistant tuned for general requests.",
+    logo: "assets/logos/kolbys-ai-logo.png"
+  },
+  {
+    id: "kolbys-ai-v21",
+    label: "Kolby's AI (Beta 1.0)",
+    description: "Sharper reasoning with a balanced tone.",
+    logo: "assets/logos/kolbys-ai-logo.png"
+  },
+  {
+    id: "kolbys-ai-v22",
+    label: "Kolby's AI (Beta 1.1)",
+    description: "Experimental refinements for fast answers.",
+    logo: "assets/logos/kolbys-ai-logo.png"
+  },
+  {
+    id: "changing-tides-ai-proposal-test",
+    label: "Changing Tides Proposal",
+    description: "Beachy palette model made for proposals.",
+    logo: "assets/logos/changing-tides.png"
+  },
+  {
+    id: "mountains-to-sea-therapy",
+    label: "Mountains to Sea Therapy",
+    description: "Legacy therapy brain for context-heavy asks.",
+    logo: "assets/logos/mountains-to-sea.png"
+  }
 ];
 
-const PROPOSAL_MODEL_ID = "changing-tides-ai-proposal-test";
+const THEME_BY_MODEL = {
+  "changing-tides-ai-proposal-test": "beach",
+  "mountains-to-sea-therapy": "mountain"
+};
 
 let currentModel = MODELS[0].id;
+let spicyMode = false;
+let originMode = false;
 let sending = false;
+let lastUserText = "";
 
 /* ==========================================================
    UTILITIES
    ========================================================== */
-
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => Array.from(document.querySelectorAll(selector));
 
-function setCurrentModelLabel(label) {
-  const labelEls = qsa("#current-model-label");
-  labelEls.forEach((el) => (el.textContent = label));
+function updateModesIndicator() {
+  const indicator = qs("#modes-indicator");
+  if (!indicator) return;
+  indicator.textContent = `Spicy: ${spicyMode ? "On" : "Off"} · Origin: ${originMode ? "On" : "Off"}`;
 }
 
-function setConnectionStatus(text) {
-  const el = qs("#connection-status");
-  if (el) el.textContent = text;
+function setThemeForModel(modelId) {
+  const theme = THEME_BY_MODEL[modelId] || "light";
+  document.documentElement.setAttribute("data-theme", theme);
+  const themeLabel = theme === "beach" ? "Changing Tides" : theme === "mountain" ? "Mountains to Sea" : "light";
+  const indicator = qs("#theme-indicator");
+  if (indicator) indicator.textContent = `Theme: ${themeLabel}`;
+}
+
+function populateModelSelect() {
+  const select = qs("#model-select");
+  if (!select) return;
+  select.innerHTML = "";
+  MODELS.forEach((model) => {
+    const option = document.createElement("option");
+    option.value = model.id;
+    option.textContent = model.label;
+    select.appendChild(option);
+  });
+}
+
+function renderBadges(model) {
+  const row = qs("#model-badges");
+  if (!row || !model) return;
+  row.innerHTML = "";
+  const chips = [
+    model.label,
+    model.id,
+    spicyMode ? "Spicy mode on" : "Spicy mode off",
+    originMode ? "Origin story primed" : "Origin story off"
+  ];
+  chips.forEach((text) => {
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.textContent = text;
+    row.appendChild(chip);
+  });
+}
+
+function setActiveModel(modelId) {
+  currentModel = modelId;
+  const select = qs("#model-select");
+  if (select && select.value !== modelId) select.value = modelId;
+
+  const model = MODELS.find((m) => m.id === modelId) || MODELS[0];
+  qs("#active-model-name").textContent = model.label;
+  qs("#active-model-subtitle").textContent = model.description;
+  qs("#topbar-model-name").textContent = model.label;
+  qs("#active-logo").src = model.logo;
+  qs("#topbar-logo").src = model.logo;
+
+  renderBadges(model);
+  setThemeForModel(modelId);
+  updateModesIndicator();
 }
 
 function toggleEmptyState(show) {
   const empty = qs("#chat-empty");
-  if (!empty) return;
-  empty.style.display = show ? "flex" : "none";
-}
-
-function clearChat() {
   const thread = qs("#chat-thread");
-  if (thread) thread.innerHTML = "";
-  toggleEmptyState(true);
+  if (empty) empty.style.display = show ? "grid" : "none";
+  if (thread && show) thread.innerHTML = "";
 }
 
-function timestamp() {
-  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function buildSystemPrompt() {
+  let prompt = "You are Kolby's AI assistant.";
+  if (spicyMode) {
+    prompt += " Spicy Mode ON: reply with witty, sarcastic but not cruel humor while staying helpful.";
+  }
+  if (originMode) {
+    prompt += " If asked, share the origin story about Kolby building the model.";
+  }
+  return prompt;
+}
+
+function createTyping() {
+  const typing = document.createElement("span");
+  typing.className = "typing";
+  typing.innerHTML = "<span></span><span></span><span></span>";
+  return typing;
+}
+
+function fillContent(container, text) {
+  container.textContent = text;
+}
+
+function appendMessage(role, text, { pending = false } = {}) {
+  const thread = qs("#chat-thread");
+  if (!thread) return null;
+
+  toggleEmptyState(false);
+
+  const bubble = document.createElement("article");
+  bubble.className = `bubble bubble--${role}${pending ? " bubble--pending" : ""}`;
+
+  const meta = document.createElement("div");
+  meta.className = "bubble__meta";
+  const roleSpan = document.createElement("span");
+  roleSpan.className = "bubble__role";
+  roleSpan.textContent = role === "user" ? "You" : "Kolby’s AI";
+  meta.appendChild(roleSpan);
+
+  const time = document.createElement("span");
+  time.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  meta.appendChild(time);
+
+  const content = document.createElement("div");
+  content.className = "bubble__content";
+  if (pending) {
+    content.appendChild(createTyping());
+  } else {
+    fillContent(content, text);
+  }
+
+  bubble.appendChild(meta);
+  bubble.appendChild(content);
+
+  if (role === "assistant" && !pending) {
+    const actions = document.createElement("div");
+    actions.className = "bubble__actions";
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "ghost-btn";
+    retry.textContent = "Retry";
+    retry.addEventListener("click", () => {
+      if (lastUserText) sendFlow(lastUserText);
+    });
+    actions.appendChild(retry);
+    bubble.appendChild(actions);
+  }
+
+  thread.appendChild(bubble);
+  thread.scrollTop = thread.scrollHeight;
+  return bubble;
+}
+
+function setSending(state) {
+  sending = state;
+  const sendBtn = qs("#send-btn");
+  if (sendBtn) {
+    sendBtn.disabled = state;
+    sendBtn.innerHTML = state
+      ? '<i class="ri-loader-4-line" aria-hidden="true"></i> Sending'
+      : '<i class="ri-send-plane-2-line" aria-hidden="true"></i> <span>Send</span>';
+  }
 }
 
 /* ==========================================================
-   MODEL HANDLING
+   BACKEND CALL
    ========================================================== */
-
-function activateModel(modelId) {
-  currentModel = modelId;
-  qsa(".model-sidebar li").forEach((li) => li.classList.toggle("active", li.dataset.modelId === modelId));
-  qsa(".model-card").forEach((card) => card.classList.toggle("active", card.dataset.modelId === modelId));
-  const model = MODELS.find((m) => m.id === modelId) || MODELS[0];
-  setCurrentModelLabel(model.label);
-  setConnectionStatus("Brain online");
-  document.body.classList.remove("drawer-open");
-  console.log("Selected model:", modelId);
-}
-
-function renderModels() {
-  const list = qs("#model-list");
-  const grid = qs("#model-grid");
-  if (!list || !grid) return;
-
-  list.innerHTML = "";
-  grid.innerHTML = "";
-
-  MODELS.forEach((model) => {
-    const li = document.createElement("li");
-    li.textContent = model.label;
-    li.dataset.modelId = model.id;
-    if (model.id === currentModel) li.classList.add("active");
-    li.tabIndex = 0;
-    const handle = () => activateModel(model.id);
-    li.addEventListener("click", handle);
-    li.addEventListener("keyup", (e) => {
-      if (e.key === "Enter" || e.key === " ") handle();
-    });
-    list.appendChild(li);
-
-    const card = document.createElement("article");
-    card.className = "model-card" + (model.id === currentModel ? " active" : "");
-    card.dataset.modelId = model.id;
-    card.innerHTML = `
-      <div class="model-card__meta">
-        <span class="model-card__name">${model.label}</span>
-        <span class="model-card__badge">${model.id}</span>
-      </div>
-      <p class="muted">${model.description}</p>
-      <div class="chip-row">
-        <button class="primary-btn" type="button">Set active</button>
-      </div>
-    `;
-    card.querySelector("button")?.addEventListener("click", handle);
-    card.addEventListener("click", (e) => {
-      // avoid double fires from button; outer card remains tap-friendly on mobile
-      if (e.target.tagName !== "BUTTON") handle();
-    });
-
-    grid.appendChild(card);
-  });
-
-  const initialModel = MODELS.find((m) => m.id === currentModel) || MODELS[0];
-  setCurrentModelLabel(initialModel.label);
-}
-
-/* ==========================================================
-   API CALL
-   ========================================================== */
-
-async function callModel(userText, { modelId = currentModel, systemPrompt = "You are Kolby's AI assistant." } = {}) {
-  console.log("Sending request:", { model: modelId, url: OPENWEBUI_URL });
+async function callModel(userText, { modelId = currentModel } = {}) {
   try {
     const response = await fetch(OPENWEBUI_URL, {
       method: "POST",
@@ -130,7 +221,7 @@ async function callModel(userText, { modelId = currentModel, systemPrompt = "You
       body: JSON.stringify({
         model: modelId,
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: buildSystemPrompt() },
           { role: "user", content: userText }
         ]
       })
@@ -156,88 +247,50 @@ async function callModel(userText, { modelId = currentModel, systemPrompt = "You
 }
 
 /* ==========================================================
-   CHAT
+   CHAT FLOW
    ========================================================== */
+async function sendFlow(text) {
+  if (!text || sending) return;
+  lastUserText = text;
+  setSending(true);
+  appendMessage("user", text);
+  const pending = appendMessage("assistant", "Thinking...", { pending: true });
 
-function appendMessage(role, text, { pending = false } = {}) {
-  const thread = qs("#chat-thread");
-  if (!thread) return null;
+  const reply = await callModel(text);
 
-  toggleEmptyState(false);
-
-  const msg = document.createElement("article");
-  msg.className = `message message--${role}${pending ? " message--pending" : ""}`;
-
-  const meta = document.createElement("div");
-  meta.className = "message__meta";
-  const pill = document.createElement("span");
-  pill.className = "message__role";
-  pill.textContent = role === "user" ? "You" : "Kolby’s AI";
-  meta.appendChild(pill);
-
-  const time = document.createElement("span");
-  time.textContent = timestamp();
-  meta.appendChild(time);
-
-  const body = document.createElement("div");
-  body.className = "message__content";
-  fillContent(body, text);
-
-  msg.appendChild(meta);
-  msg.appendChild(body);
-  thread.appendChild(msg);
-  thread.scrollTop = thread.scrollHeight;
-
-  return msg;
-}
-
-function fillContent(container, text) {
-  container.innerHTML = "";
-  text.split(/\n+/).forEach((line) => {
-    const p = document.createElement("p");
-    p.textContent = line;
-    container.appendChild(p);
-  });
-}
-
-function setSending(state) {
-  sending = state;
-  const sendBtn = qs("#send-btn");
-  if (sendBtn) {
-    sendBtn.disabled = state;
-    sendBtn.innerHTML = state
-      ? '<i class="ri-loader-4-line" aria-hidden="true"></i> Sending'
-      : '<i class="ri-send-plane-2-line" aria-hidden="true"></i> <span>Send</span>';
-  }
-  setConnectionStatus(state ? "Talking to backend…" : "Brain online");
-}
-
-function wireChatUI() {
-  const form = qs("#chat-form");
-  const textarea = qs("#chat-input-textarea");
-  if (!form || !textarea) return;
-
-  const sendFlow = async (text) => {
-    if (!text || sending) return;
-    appendMessage("user", text);
-    textarea.value = "";
-    setSending(true);
-
-    const pending = appendMessage("assistant", "Thinking...", { pending: true });
-    const reply = await callModel(text);
-
-    if (pending) {
-      pending.classList.remove("message--pending");
-      const content = pending.querySelector(".message__content");
-      if (content) fillContent(content, reply);
+  if (pending) {
+    pending.classList.remove("bubble--pending");
+    const content = pending.querySelector(".bubble__content");
+    if (content) fillContent(content, reply);
+    const actions = pending.querySelector(".bubble__actions");
+    if (!actions) {
+      const actionWrap = document.createElement("div");
+      actionWrap.className = "bubble__actions";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "ghost-btn";
+      retry.textContent = "Retry";
+      retry.addEventListener("click", () => {
+        if (lastUserText) sendFlow(lastUserText);
+      });
+      actionWrap.appendChild(retry);
+      pending.appendChild(actionWrap);
     }
+  }
 
-    setSending(false);
-  };
+  setSending(false);
+}
+
+function wireComposer() {
+  const form = qs("#chat-form");
+  const textarea = qs("#chat-input");
+  if (!form || !textarea) return;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const text = textarea.value.trim();
+    if (!text) return;
+    textarea.value = "";
     sendFlow(text);
   });
 
@@ -245,116 +298,88 @@ function wireChatUI() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const text = textarea.value.trim();
+      if (!text) return;
+      textarea.value = "";
       sendFlow(text);
     }
   });
 
   qsa(".prompt-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
-      textarea.value = btn.dataset.prompt || "";
-      textarea.focus();
-    });
-  });
-
-  qsa("#new-chat-btn, #secondary-new-chat").forEach((btn) => {
-    btn?.addEventListener("click", () => {
-      clearChat();
+      const prompt = btn.dataset.prompt || "";
+      textarea.value = prompt;
       textarea.focus();
     });
   });
 }
 
-/* ==========================================================
-   NAVIGATION + SIDEBAR
-   ========================================================== */
-
-function setActiveView(targetId) {
-  qsa(".view").forEach((section) => section.classList.toggle("active", section.id === targetId));
-  qsa(".nav__item").forEach((item) => item.classList.toggle("active", item.dataset.target === targetId));
-  if (window.innerWidth <= 1120) document.body.classList.remove("drawer-open");
-}
-
-function wireNavigation() {
-  qsa('[data-target]').forEach((el) => {
-    el.addEventListener("click", (e) => {
-      const target = el.dataset.target;
-      if (!target) return;
-      e.preventDefault();
-      setActiveView(target);
-    });
-  });
-}
-
-function wireSidebarToggle() {
-  const toggle = qs("#sidebar-toggle");
-  const overlay = qs("#sidebar-overlay");
+function wireSidebar() {
+  const openBtn = qs("#sidebar-open");
+  const scrim = qs("#sidebar-scrim");
+  const sidebar = qs("#sidebar");
   const close = () => document.body.classList.remove("drawer-open");
-  const toggleSidebar = () => document.body.classList.toggle("drawer-open");
-  toggle?.addEventListener("click", toggleSidebar);
-  overlay?.addEventListener("click", close);
+  openBtn?.addEventListener("click", () => document.body.classList.add("drawer-open"));
+  scrim?.addEventListener("click", close);
+  sidebar?.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
 }
 
-/* ==========================================================
-   PROPOSAL
-   ========================================================== */
+function wireModelSelect() {
+  const select = qs("#model-select");
+  if (!select) return;
+  select.addEventListener("change", () => {
+    setActiveModel(select.value);
+    document.body.classList.remove("drawer-open");
+  });
+}
 
-function wireProposalForm() {
-  const form = qs("#proposal-form");
-  const submitBtn = qs("#proposal-submit");
-  const clearBtn = qs("#proposal-clear");
-  const output = qs("#proposal-output");
-  const outputBody = qs("#proposal-body");
-  const status = qs("#proposal-status");
+function wireToggles() {
+  const spicyBtn = qs("#spicy-toggle");
+  const originBtn = qs("#origin-toggle");
 
-  if (!form || !submitBtn || !outputBody || !status) return;
-
-  const setProposalState = (stateText) => {
-    status.textContent = stateText;
+  const update = () => {
+    spicyBtn.textContent = `Spicy Mode: ${spicyMode ? "On" : "Off"}`;
+    spicyBtn.setAttribute("aria-pressed", spicyMode);
+    originBtn.textContent = `Origin Story: ${originMode ? "On" : "Off"}`;
+    originBtn.setAttribute("aria-pressed", originMode);
+    updateModesIndicator();
+    const model = MODELS.find((m) => m.id === currentModel);
+    renderBadges(model);
   };
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const client = qs("#proposal-client").value.trim();
-    const level = qs("#proposal-level").value.trim();
-    const context = qs("#proposal-context").value.trim();
-
-    if (!client || !level || !context || sending) return;
-
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="ri-loader-4-line" aria-hidden="true"></i> Generating';
-    setProposalState("Generating...");
-
-    const prompt = `Create a concise Changing Tides proposal. Include: client name (${client}), level of care (${level}), goals, recommended services, and a short rationale. Context: ${context}`;
-
-    const reply = await callModel(prompt, {
-      modelId: PROPOSAL_MODEL_ID,
-      systemPrompt: "You create clear, structured Changing Tides program proposals. Keep them brief and actionable."
-    });
-
-    outputBody.textContent = reply;
-    output.hidden = false;
-    setProposalState("Ready");
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="ri-magic-line" aria-hidden="true"></i> <span>Generate proposal</span>';
+  spicyBtn?.addEventListener("click", () => {
+    spicyMode = !spicyMode;
+    update();
   });
 
-  clearBtn?.addEventListener("click", () => {
-    form.reset();
-    output.hidden = true;
-    outputBody.textContent = "";
+  originBtn?.addEventListener("click", () => {
+    originMode = !originMode;
+    update();
+  });
+
+  update();
+}
+
+function wireNewChat() {
+  const newChatBtn = qs("#new-chat-btn");
+  const textarea = qs("#chat-input");
+  newChatBtn?.addEventListener("click", () => {
+    toggleEmptyState(true);
+    lastUserText = "";
+    textarea?.focus();
   });
 }
 
-/* ==========================================================
-   INIT
-   ========================================================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-  renderModels();
-  wireChatUI();
-  wireNavigation();
-  wireSidebarToggle();
-  wireProposalForm();
+function init() {
+  populateModelSelect();
+  setActiveModel(currentModel);
+  wireComposer();
+  wireSidebar();
+  wireModelSelect();
+  wireToggles();
+  wireNewChat();
   toggleEmptyState(true);
-  setActiveView("view-chat");
-});
+}
+
+document.addEventListener("DOMContentLoaded", init);
