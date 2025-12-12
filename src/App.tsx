@@ -167,7 +167,7 @@ export default function App() {
       id: 1,
       role: "assistant",
       text:
-        "Welcome aboard. This is Kolby’s AI cockpit — light theme, purple outlines, and all your logos faded behind the chat.",
+        "Welcome aboard. This is Kolby's Custom Built Artificial Intelligence Software.",
     },
   ]);
 
@@ -311,7 +311,7 @@ export default function App() {
             </div>
             <div>
               <div className="text-xs uppercase tracking-wide text-[var(--muted-text)]">
-                Kolby’s AI
+                Kolby's Custom Built Artificial Intelligence Software
               </div>
               <div className="font-semibold text-sm sm:text-base">
                 {activeModel.label}
