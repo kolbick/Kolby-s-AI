@@ -1,10 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-/**
- * Global styles (themes, purple outlines, faded logo background)
- * This gets injected once into <head> when the app mounts.
- */
 const GLOBAL_STYLES = `
 :root {
   --bg-color: #ffffff;
@@ -21,11 +17,7 @@ const GLOBAL_STYLES = `
 
   --input-bg: #f9fafb;
   --chip-bg: #f3f4f6;
-
-  /* all logos, used as default watermark */
-  --chat-bg-image: url("/logos/kolbys-ai-avatar.png"),
-                   url("/logos/mountains-to-sea.png"),
-                   url("/logos/changing-tides.png");
+  --chat-bg-image: url("/logos/kolbys-ai-main.png");
 }
 
 /* Beach theme (Changing Tides) */
@@ -35,9 +27,6 @@ const GLOBAL_STYLES = `
   --accent: #2f80ed;               /* ocean */
   --accent-strong: #2563eb;
   --accent-soft: rgba(47, 128, 237, 0.12);
-  --chat-bg-image: url("/logos/changing-tides.png"),
-                   url("/logos/kolbys-ai-avatar.png"),
-                   url("/logos/mountains-to-sea.png");
 }
 
 /* Mountain theme (Mountains to Sea) */
@@ -47,9 +36,6 @@ const GLOBAL_STYLES = `
   --accent: #1b3a61;               /* navy */
   --accent-strong: #142947;
   --accent-soft: rgba(27, 58, 97, 0.13);
-  --chat-bg-image: url("/logos/mountains-to-sea.png"),
-                   url("/logos/kolbys-ai-avatar.png"),
-                   url("/logos/changing-tides.png");
 }
 
 /* -------- purple outlines / focus states ---------- */
@@ -67,7 +53,7 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* -------- chat watermark (all logos, faded) -------- */
+/* -------- chat watermark (single logo, faded) -------- */
 
 .chat-panel {
   position: relative;
@@ -80,12 +66,9 @@ textarea:focus-visible {
   inset: 0;
   background-image: var(--chat-bg-image);
   background-repeat: no-repeat;
-  background-size: 180px auto, 200px auto, 170px auto;
-  background-position:
-    top 8% left 6%,
-    center,
-    bottom 8% right 8%;
-  opacity: 0.045;                  /* adjust for stronger/weaker logos */
+  background-size: 520px auto;
+  background-position: center;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
 }
@@ -119,7 +102,6 @@ const themes: Record<string, ThemeName> = {
 type ModelConfig = {
   id: string;
   label: string;
-  subtitle: string;
   logo: string;
 };
 
@@ -127,25 +109,21 @@ const models: ModelConfig[] = [
   {
     id: "kolbys-ai-beta",
     label: "Kolby’s AI (Beta)",
-    subtitle: "General assistant · purple + gold",
     logo: "/logos/kolbys-ai-main.png",
   },
   {
     id: "kolbys-ai-alpha",
     label: "Kolby’s AI (Alpha)",
-    subtitle: "Experimental build",
     logo: "/logos/kolbys-ai-avatar.png",
   },
   {
     id: "changing-tides-proposal",
-    label: "Changing Tides Proposal",
-    subtitle: "Proposal generator",
+    label: "Notes (Beta)",
     logo: "/logos/changing-tides.png",
   },
   {
     id: "mountains-to-sea-therapy",
     label: "Mountains to Sea Therapy",
-    subtitle: "Clinical / admin assistant",
     logo: "/logos/mountains-to-sea.png",
   },
 ];
@@ -158,18 +136,10 @@ type Message = {
 
 export default function App() {
   const [modelId, setModelId] = useState<string>("kolbys-ai-beta");
-  const [theme, setTheme] = useState<ThemeName>("light");
   const [spicyMode, setSpicyMode] = useState(false);
   const [originMode, setOriginMode] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      role: "assistant",
-      text:
-        "Welcome aboard. This is Kolby's Custom Built Artificial Intelligence Software.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   // inject CSS once
   useEffect(() => {
@@ -182,13 +152,21 @@ export default function App() {
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", activeTheme);
     }
-    setTheme(activeTheme);
   }, [modelId]);
 
   const activeModel = useMemo(
     () => models.find((m) => m.id === modelId) ?? models[0],
     [modelId]
   );
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.style.setProperty(
+        "--chat-bg-image",
+        `url("${activeModel.logo}")`
+      );
+    }
+  }, [activeModel.logo]);
 
   const handleSend = () => {
     const trimmed = input.trim();
@@ -202,14 +180,10 @@ export default function App() {
       text: trimmed,
     };
 
-    // front-end placeholder reply
     const assistantMessage: Message = {
       id: nextId + 1,
       role: "assistant",
-      text:
-        "This is a placeholder reply from the UI layer.\n\n" +
-        "👉 TODO: wire this send handler into your existing backend call " +
-        "and stream the real response here.",
+      text: "…",
     };
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
@@ -238,50 +212,39 @@ export default function App() {
             />
           </div>
           <div className="min-w-0">
-            <div className="text-[0.7rem] uppercase tracking-wide text-[var(--muted-text)]">
-              Active model
-            </div>
             <div className="font-semibold truncate">{activeModel.label}</div>
-            <div className="text-xs text-[var(--muted-text)] truncate">
-              {activeModel.subtitle}
-            </div>
           </div>
         </div>
 
-        <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto">
-          <div>
-            <label className="text-xs font-medium text-[var(--muted-text)]">
-              Model
-            </label>
-            <select
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-[var(--border-strong)] bg-[var(--input-bg)] px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-color)]"
-            >
-              {models.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+          <select
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value)}
+            className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--input-bg)] px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-color)]"
+          >
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
 
           <div className="space-y-2">
             <Button
               type="button"
               variant="outline"
-              className="w-full justify-between border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-soft)]"
+              className="w-full justify-between border-[var(--border-subtle)] text-[var(--text-color)] hover:bg-[var(--accent-soft)]"
               onClick={() => setSpicyMode((prev) => !prev)}
             >
               <span>Spicy Mode</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent-soft)]">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--chip-bg)]">
                 {spicyMode ? "On" : "Off"}
               </span>
             </Button>
             <Button
               type="button"
               variant="outline"
-              className="w-full justify-between border-[var(--border-strong)]"
+              className="w-full justify-between border-[var(--border-subtle)] text-[var(--text-color)] hover:bg-[var(--accent-soft)]"
               onClick={() => setOriginMode((prev) => !prev)}
             >
               <span>Origin Story</span>
@@ -291,8 +254,8 @@ export default function App() {
             </Button>
           </div>
 
-          <Button className="w-full mt-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-white">
-            + New chat
+          <Button className="w-full bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-white">
+            New chat
           </Button>
         </div>
       </aside>
@@ -310,12 +273,10 @@ export default function App() {
               />
             </div>
             <div>
-              <div className="text-xs uppercase tracking-wide text-[var(--muted-text)]">
-                Kolby's Custom Built Artificial Intelligence Software
-              </div>
-              <div className="font-semibold text-sm sm:text-base">
-                {activeModel.label}
-              </div>
+              <h1 className="text-sm sm:text-base font-semibold leading-tight">
+                Kolby’s Custom Built Artificial Intelligence Software
+              </h1>
+              <div className="text-xs text-[var(--muted-text)]">{activeModel.label}</div>
             </div>
           </div>
 
@@ -336,40 +297,76 @@ export default function App() {
         </header>
 
         {/* Chat panel with faded logos */}
-        <main className="flex-1 overflow-y-auto p-4">
-          <div className="chat-panel rounded-2xl border border-[var(--border-subtle)] bg-[var(--panel-bg)] px-4 py-4 max-w-4xl mx-auto">
-            <div className="relative z-10 flex flex-col gap-3 text-sm">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--chip-bg)] px-3 py-1 text-[0.7rem] text-[var(--muted-text)] self-start">
-                <span className="h-2 w-2 rounded-full bg-[var(--accent)]"></span>
-                <span>
-                  Theme: <strong>{theme}</strong> · Spicy:{" "}
-                  {spicyMode ? "On" : "Off"} · Origin:{" "}
-                  {originMode ? "On" : "Off"}
-                </span>
-              </div>
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {models.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setModelId(m.id)}
+                  className={`rounded-xl border transition shadow-sm ${
+                    m.id === modelId
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                      : "border-[var(--border-subtle)] bg-[var(--panel-bg)]"
+                  }`}
+                >
+                  <div className="aspect-square flex items-center justify-center p-3">
+                    <img
+                      src={m.logo}
+                      alt={m.label}
+                      className="h-14 w-14 object-contain"
+                    />
+                  </div>
+                  <div className="border-t border-[var(--border-subtle)] text-center text-xs font-medium px-2 py-2">
+                    {m.label}
+                  </div>
+                </button>
+              ))}
+            </div>
 
-              {/* Message list */}
-              <div className="flex flex-col gap-3">
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={
-                      "flex " +
-                      (m.role === "user" ? "justify-end" : "justify-start")
-                    }
+            <div className="chat-panel rounded-2xl border border-[var(--border-subtle)] bg-[var(--panel-bg)] px-4 py-4">
+              <div className="relative z-10 flex flex-col gap-4 text-sm">
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 px-3 text-xs border-[var(--border-subtle)] bg-[var(--panel-bg)] hover:bg-[var(--accent-soft)]"
+                    onClick={() => setSpicyMode((prev) => !prev)}
                   >
+                    Spicy Mode: {spicyMode ? "On" : "Off"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 px-3 text-xs border-[var(--border-subtle)] bg-[var(--panel-bg)] hover:bg-[var(--accent-soft)]"
+                    onClick={() => setOriginMode((prev) => !prev)}
+                  >
+                    Origin Story: {originMode ? "On" : "Off"}
+                  </Button>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {messages.map((m) => (
                     <div
+                      key={m.id}
                       className={
-                        "max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap " +
-                        (m.role === "user"
-                          ? "bg-[var(--accent-soft)] text-[var(--text-color)] border border-[var(--accent)]"
-                          : "bg-white/85 border border-[var(--border-subtle)]")
+                        "flex " +
+                        (m.role === "user" ? "justify-end" : "justify-start")
                       }
                     >
-                      {m.text}
+                      <div
+                        className={
+                          "max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap " +
+                          (m.role === "user"
+                            ? "bg-[var(--accent-soft)] text-[var(--text-color)] border border-[var(--accent)]"
+                            : "bg-white/85 border border-[var(--border-subtle)]")
+                        }
+                      >
+                        {m.text}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -383,7 +380,7 @@ export default function App() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+              placeholder="Message"
               className="flex-1 rounded-lg border border-[var(--border-strong)] bg-[var(--input-bg)] px-3 py-2 text-sm resize-none outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-color)]"
             />
             <Button
