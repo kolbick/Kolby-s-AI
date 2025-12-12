@@ -82,6 +82,42 @@ function populateModelSelect() {
   });
 }
 
+function renderModelPicker() {
+  const container = qs("#model-picker");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  MODELS.forEach((model) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "model-picker__item";
+    button.setAttribute("data-model-id", model.id);
+    button.setAttribute("role", "listitem");
+    button.setAttribute("aria-label", model.label);
+
+    if (model.id === currentModel) {
+      button.classList.add("model-picker__item--active");
+      button.setAttribute("aria-current", "true");
+    }
+
+    const img = document.createElement("img");
+    img.src = model.logo;
+    img.alt = model.label;
+    img.loading = "lazy";
+
+    button.appendChild(img);
+
+    button.addEventListener("click", () => {
+      if (model.id !== currentModel) {
+        setActiveModel(model.id);
+      }
+    });
+
+    container.appendChild(button);
+  });
+}
+
 function renderBadges(model) {
   const row = qs("#model-badges");
   if (!row || !model) return;
@@ -102,6 +138,8 @@ function renderBadges(model) {
 
 function setActiveModel(modelId) {
   currentModel = modelId;
+  populateModelSelect();
+
   const select = qs("#model-select");
   if (select && select.value !== modelId) select.value = modelId;
 
@@ -112,9 +150,14 @@ function setActiveModel(modelId) {
   qs("#active-logo").src = model.logo;
   qs("#topbar-logo").src = model.logo;
 
-  renderBadges(model);
+  if (model.logo) {
+    document.documentElement.style.setProperty("--watermark-image", `url("${model.logo}")`);
+  }
+
   setThemeForModel(modelId);
+  renderBadges(model);
   updateModesIndicator();
+  renderModelPicker();
 }
 
 function toggleEmptyState(show) {
@@ -379,6 +422,7 @@ function init() {
   wireModelSelect();
   wireToggles();
   wireNewChat();
+  renderModelPicker();
   toggleEmptyState(true);
 }
 
