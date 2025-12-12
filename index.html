@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Kolby’s AI | Modern cockpit</title>
+  <title>Kolby’s AI | Light cockpit</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="assets/img/kolbysailogo2.png" sizes="32x32" />
   <link rel="apple-touch-icon" href="assets/img/kolbysailogo2.png" />
@@ -11,227 +11,107 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
-  <link rel="stylesheet" href="assets/style.css?v=kolby-v4" />
+  <link rel="stylesheet" href="assets/style.css?v=kolby-v5" />
 </head>
 <body>
-  <div class="shell">
-    <aside class="sidebar" aria-label="Primary navigation">
-      <div class="brand">
-        <button class="brand__logo" aria-label="Kolby’s AI home">
-          <img src="assets/img/kolbysailogo2.png" alt="Kolby’s AI logo" />
-        </button>
-        <div class="brand__text">
-          <span class="brand__title">Kolby’s AI</span>
-          <span class="brand__meta">Modern AI cockpit</span>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <div class="brand-block">
+        <img id="active-logo" src="assets/logos/kolbys-ai-logo.png" alt="Kolby’s AI logo" />
+        <div class="brand-text">
+          <div id="active-model-name" class="brand-title">Kolby’s AI</div>
+          <div id="active-model-subtitle" class="brand-subtitle">Modern cockpit</div>
         </div>
       </div>
 
-      <nav class="nav" id="nav-list">
-        <button class="nav__item active" data-target="view-chat" aria-label="Go to chat">
-          <i class="ri-message-3-line" aria-hidden="true"></i>
-          <span>Chat</span>
-        </button>
-        <button class="nav__item" data-target="view-models" aria-label="Choose a model">
-          <i class="ri-cpu-line" aria-hidden="true"></i>
-          <span>Models</span>
-        </button>
-        <button class="nav__item" data-target="view-proposal" aria-label="Generate a Changing Tides proposal">
-          <i class="ri-file-edit-line" aria-hidden="true"></i>
-          <span>Changing Tides Proposal</span>
-        </button>
-        <button class="nav__item" data-target="view-story" aria-label="Read about Kolby’s AI">
-          <i class="ri-compass-3-line" aria-hidden="true"></i>
-          <span>Story / About</span>
-        </button>
-      </nav>
+      <div class="sidebar-section">
+        <label class="field-label" for="model-select">Model</label>
+        <select id="model-select" class="field-control" aria-label="Select a model"></select>
+      </div>
 
-      <div class="sidebar__card">
-        <div class="sidebar__card-header">
-          <span class="pill pill--solid">Live backend</span>
-          <span class="status" id="connection-status">Brain online</span>
+      <div class="sidebar-section toggle-section">
+        <div class="toggle-row">
+          <button id="spicy-toggle" class="toggle-btn" type="button" aria-pressed="false">Spicy Mode: Off</button>
+          <button id="origin-toggle" class="toggle-btn" type="button" aria-pressed="false">Origin Story: Off</button>
         </div>
-        <p class="muted">Calls use the configured OpenWebUI endpoint and JWT already in this repo.</p>
-        <button class="ghost-btn" id="new-chat-btn" aria-label="Start a new chat">
-          <i class="ri-sparkling-fill" aria-hidden="true"></i>
-          <span>New chat</span>
-        </button>
       </div>
 
-      <div class="sidebar__section">
-        <div class="sidebar__section-title">Models</div>
-        <ul class="model-sidebar" id="model-list" aria-live="polite"></ul>
-      </div>
+      <button class="primary-btn full" id="new-chat-btn" type="button">
+        <i class="ri-sparkling-fill" aria-hidden="true"></i>
+        <span>New chat</span>
+      </button>
+
+      <div class="sidebar-section muted placeholder">Recents coming soon</div>
     </aside>
 
-    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Open navigation">
-      <i class="ri-menu-line" aria-hidden="true"></i>
-    </button>
-    <div class="scrim" id="sidebar-overlay" aria-hidden="true"></div>
-
-    <main class="main">
-      <header class="header">
-        <div>
-          <p class="eyebrow">Kolby’s AI</p>
-          <h1>OpenWebUI-inspired, tailored for Kolby.</h1>
-          <p class="muted">Clean, responsive cockpit for chatting, choosing models, and generating Changing Tides proposals without legacy clutter.</p>
+    <div class="main">
+      <div class="topbar">
+        <button class="icon-btn" id="sidebar-open" aria-label="Open sidebar">
+          <i class="ri-menu-line" aria-hidden="true"></i>
+        </button>
+        <div class="topbar-brand">
+          <img id="topbar-logo" src="assets/logos/kolbys-ai-logo.png" alt="Active model logo" />
+          <div>
+            <div id="topbar-model-name" class="topbar-title">Kolby’s AI</div>
+            <div class="muted small">Live backend · secure JWT already configured</div>
+          </div>
         </div>
-        <div class="header__actions">
-          <button class="ghost-btn" id="secondary-new-chat">
-            <i class="ri-refresh-line" aria-hidden="true"></i>
-            <span>Reset chat</span>
+        <div class="topbar-chips">
+          <div class="chip" id="theme-indicator">Theme: light</div>
+          <div class="chip" id="modes-indicator">Spicy: Off · Origin: Off</div>
+        </div>
+      </div>
+
+      <div class="chat-panel" id="chat-panel">
+        <div class="chat-header">
+          <div>
+            <p class="eyebrow">Kolby’s AI</p>
+            <h1>Clean, OpenWebUI-inspired cockpit</h1>
+            <p class="muted">White panels, purple accents, and live calls to the existing backend.</p>
+          </div>
+        </div>
+
+        <div class="chip-row" id="model-badges"></div>
+
+        <div class="chat-thread" id="chat-thread" role="log" aria-live="polite"></div>
+
+        <div class="chat-empty" id="chat-empty">
+          <div class="empty-logos" aria-hidden="true">
+            <img src="assets/logos/kolbys-ai-avatar.png" alt="Kolby’s AI avatar" />
+            <img src="assets/logos/changing-tides.png" alt="Changing Tides logo" />
+            <img src="assets/logos/mountains-to-sea.png" alt="Mountains to Sea logo" />
+          </div>
+          <h3>Start a new conversation</h3>
+          <p class="muted">Choose a model, toggle a mode, or tap a prompt to get going.</p>
+          <div class="prompt-row" aria-label="Starter prompts">
+            <button class="prompt-chip" data-prompt="Give me three ways to make this onboarding calmer and clearer.">Product polish</button>
+            <button class="prompt-chip" data-prompt="Summarize this chat into action items and next steps.">Summarize steps</button>
+            <button class="prompt-chip" data-prompt="Draft a friendly follow-up note after a discovery call.">Follow-up note</button>
+          </div>
+        </div>
+      </div>
+
+      <form class="composer" id="chat-form" novalidate>
+        <label class="sr-only" for="chat-input">Message Kolby’s AI</label>
+        <textarea
+          id="chat-input"
+          placeholder="Type a message (Enter to send, Shift+Enter for newline)"
+          rows="2"
+          autocomplete="off"
+        ></textarea>
+        <div class="composer-actions">
+          <div class="keyboard-tip">Enter to send · Shift+Enter for newline</div>
+          <button type="submit" class="primary-btn" id="send-btn">
+            <i class="ri-send-plane-2-line" aria-hidden="true"></i>
+            <span>Send</span>
           </button>
-          <a class="primary-btn" href="#" data-target="view-story" role="button">Learn more</a>
         </div>
-      </header>
-
-      <section class="view active" id="view-chat" aria-label="Chat view">
-        <div class="panel">
-          <div class="panel__header">
-            <div>
-              <p class="eyebrow">Live chat</p>
-              <h2>Ask Kolby’s AI anything</h2>
-              <div class="chip-row">
-                <span class="pill" id="current-model-label">Kolby’s AI (Alpha)</span>
-                <span class="pill pill--outline">Fast replies</span>
-              </div>
-            </div>
-            <div class="chip-row">
-              <span class="status status--ok">Connected</span>
-              <button class="ghost-btn" data-target="view-models">
-                <i class="ri-cpu-line" aria-hidden="true"></i>
-                <span>Change model</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="chat-wrapper">
-            <div class="chat-thread" id="chat-thread" role="log" aria-live="polite"></div>
-            <div class="chat-empty" id="chat-empty">
-              <div class="empty-icon" aria-hidden="true">🤖</div>
-              <h3>Start a new conversation</h3>
-              <p class="muted">Messages route through the existing backend. Try a starter idea or type your own.</p>
-              <div class="prompt-row" aria-label="Starter prompts">
-                <button class="prompt-chip" data-prompt="Give me three ways to make this onboarding calmer and clearer.">Product polish</button>
-                <button class="prompt-chip" data-prompt="Summarize this chat into action items and next steps.">Summarize steps</button>
-                <button class="prompt-chip" data-prompt="Draft a friendly follow-up note after a discovery call.">Follow-up note</button>
-              </div>
-            </div>
-          </div>
-
-          <form class="composer" id="chat-form" novalidate>
-            <label class="sr-only" for="chat-input-textarea">Message Kolby’s AI</label>
-            <textarea
-              id="chat-input-textarea"
-              class="composer__input"
-              placeholder="Type a message (Enter to send, Shift+Enter for newline)"
-              rows="2"
-              autocomplete="off"
-            ></textarea>
-            <div class="composer__actions">
-              <div class="keyboard-tip">Enter to send · Shift+Enter for newline</div>
-              <button type="submit" class="primary-btn" id="send-btn">
-                <i class="ri-send-plane-2-line" aria-hidden="true"></i>
-                <span>Send</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section class="view" id="view-models" aria-label="Models view">
-        <div class="panel">
-          <div class="panel__header">
-            <div>
-              <p class="eyebrow">Models</p>
-              <h2>Choose the brain powering your chat</h2>
-              <p class="muted">Tap to activate a model. The chat header updates instantly.</p>
-            </div>
-            <button class="ghost-btn" data-target="view-chat">
-              <i class="ri-message-3-line" aria-hidden="true"></i>
-              <span>Back to chat</span>
-            </button>
-          </div>
-
-          <div class="model-grid" id="model-grid"></div>
-        </div>
-      </section>
-
-      <section class="view" id="view-proposal" aria-label="Changing Tides proposal">
-        <div class="panel">
-          <div class="panel__header">
-            <div>
-              <p class="eyebrow">Changing Tides</p>
-              <h2>Generate a proposal</h2>
-              <p class="muted">Uses the existing Changing Tides model to shape a concise proposal. No treatment plans or discharge flows remain.</p>
-            </div>
-            <button class="ghost-btn" data-target="view-chat">
-              <i class="ri-chat-1-line" aria-hidden="true"></i>
-              <span>Chat instead</span>
-            </button>
-          </div>
-
-          <form class="proposal" id="proposal-form">
-            <div class="proposal__grid">
-              <label class="field">
-                <span class="field__label">Client name</span>
-                <input type="text" id="proposal-client" placeholder="e.g., Jamie R." required />
-              </label>
-              <label class="field">
-                <span class="field__label">Level of care</span>
-                <input type="text" id="proposal-level" placeholder="e.g., IOP, PHP" required />
-              </label>
-            </div>
-            <label class="field">
-              <span class="field__label">Context</span>
-              <textarea id="proposal-context" placeholder="Provide brief clinical context or goals" rows="4" required></textarea>
-            </label>
-            <div class="proposal__actions">
-              <button type="submit" class="primary-btn" id="proposal-submit">
-                <i class="ri-magic-line" aria-hidden="true"></i>
-                <span>Generate proposal</span>
-              </button>
-              <button type="button" class="ghost-btn" id="proposal-clear">Clear</button>
-            </div>
-          </form>
-
-          <div class="proposal__output" id="proposal-output" hidden>
-            <div class="proposal__output-header">
-              <span class="pill">Changing Tides AI Proposal</span>
-              <span class="status" id="proposal-status">Ready</span>
-            </div>
-            <div class="proposal__body" id="proposal-body"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="view" id="view-story" aria-label="About Kolby’s AI">
-        <div class="panel">
-          <div class="panel__header">
-            <div>
-              <p class="eyebrow">Story / About</p>
-              <h2>The cockpit Kolby built</h2>
-              <p class="muted">Months of wiring a real backend, refined into a clean OpenWebUI-inspired shell focused on chat and proposals.</p>
-            </div>
-          </div>
-
-          <div class="story">
-            <div class="story__block">
-              <h3>Purpose-built</h3>
-              <p>Kolby wanted an AI workspace that felt intentional: minimal chrome, quick context switching, and clarity on what the brain is doing. The sidebar keeps navigation obvious while the chat stays center stage.</p>
-            </div>
-            <div class="story__block">
-              <h3>Connected today</h3>
-              <p>The UI keeps the existing OpenWebUI URL and JWT baked into the repo configuration. Every message and proposal runs against that backend—no new secrets, no fake mocks.</p>
-            </div>
-            <div class="story__block">
-              <h3>Mobile ready</h3>
-              <p>A reliable drawer, clear hit targets, and a sticky composer fix the old tapping issues on phones. Everything scales fluidly down to small viewports.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+      </form>
+    </div>
   </div>
-  <script src="assets/app.js"></script>
+
+  <div class="scrim" id="sidebar-scrim" aria-hidden="true"></div>
+
+  <script src="assets/app.js?v=kolby-v5"></script>
 </body>
 </html>
