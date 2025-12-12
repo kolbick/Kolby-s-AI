@@ -1,5 +1,5 @@
 /* ==========================================================
-   Kolby's AI — light cockpit
+   Kolby's AI — interface
    Keeps existing backend URL/JWT + model IDs intact
    ========================================================== */
 
@@ -10,31 +10,31 @@ const MODELS = [
   {
     id: "kolbys-ai-v2",
     label: "Kolby's AI (Alpha)",
-    description: "Default assistant tuned for general requests.",
+    description: "",
     logo: "assets/logos/kolbys-ai-logo.png"
   },
   {
     id: "kolbys-ai-v21",
     label: "Kolby's AI (Beta 1.0)",
-    description: "Sharper reasoning with a balanced tone.",
+    description: "",
     logo: "assets/logos/kolbys-ai-logo.png"
   },
   {
     id: "kolbys-ai-v22",
     label: "Kolby's AI (Beta 1.1)",
-    description: "Experimental refinements for fast answers.",
+    description: "",
     logo: "assets/logos/kolbys-ai-logo.png"
   },
   {
     id: "changing-tides-ai-proposal-test",
-    label: "Changing Tides Proposal",
-    description: "Beachy palette model made for proposals.",
+    label: "Notes (Beta)",
+    description: "",
     logo: "assets/logos/changing-tides.png"
   },
   {
     id: "mountains-to-sea-therapy",
     label: "Mountains to Sea Therapy",
-    description: "Legacy therapy brain for context-heavy asks.",
+    description: "",
     logo: "assets/logos/mountains-to-sea.png"
   }
 ];
@@ -122,12 +122,7 @@ function renderBadges(model) {
   const row = qs("#model-badges");
   if (!row || !model) return;
   row.innerHTML = "";
-  const chips = [
-    model.label,
-    model.id,
-    spicyMode ? "Spicy mode on" : "Spicy mode off",
-    originMode ? "Origin story primed" : "Origin story off"
-  ];
+  const chips = [model.label];
   chips.forEach((text) => {
     const chip = document.createElement("div");
     chip.className = "chip";
